@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="it" data-tema="chiaro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Europa in gioco</title>
+<meta name="description" content="Giochi di geografia per imparare gli Stati d'Europa, l'Unione europea e gli elementi fisici del continente.">
+<link rel="stylesheet" href="stile.css">
+</head>
+<body>
+
+<header class="testata">
+  <button class="logo" id="logo" aria-label="Torna al menu"><span class="logo-ico">🧭</span><span>Europa in gioco</span></button>
+  <div class="strumenti">
+    <button class="btn-strum" id="btnProgressi">📈 <span class="lbl">Progressi</span></button>
+    <button class="btn-strum" id="btnProfilo">👤 <span id="nomeProfilo">Io</span></button>
+    <button class="btn-strum" id="btnTema" aria-label="Cambia tema chiaro/scuro">🌙</button>
+  </div>
+</header>
+
+<div id="panProfilo" class="pan-profilo" hidden>
+  <b>Chi sta giocando?</b>
+  <p class="nota">Ogni profilo ha i suoi progressi e i suoi record, salvati su questo dispositivo.</p>
+  <div class="chips" id="listaProfili"></div>
+  <div class="nuovo-profilo">
+    <input id="nuovoProfilo" type="text" maxlength="20" placeholder="Nuovo nome (es. Giulia)" aria-label="Nome del nuovo profilo">
+    <button class="primario piccolo" id="aggiungiProfilo">Aggiungi</button>
+  </div>
+</div>
+
+<main id="home" class="schermata">
+  <section class="hero">
+    <h1>Impara l'Europa giocando</h1>
+    <p class="hero-testo">Questo è un sito didattico per <b>studiare e imparare</b> la geografia dell'Europa: gli <b>elementi fisici</b> (monti, pianure, mari, fiumi, isole, penisole e laghi), gli <b>Stati</b> e le <b>informazioni di base</b> su ciascuno, come capitale, moneta, lingua e appartenenza all'Unione europea.</p>
+    <div class="hero-passi">
+      <div><span>📖</span><b>Studia</b><small>Esplora la mappa e leggi le schede, con una curiosità per ogni elemento.</small></div>
+      <div><span>🎯</span><b>Allenati</b><small>Giochi e quiz come sulla cartina muta, a tre livelli di difficoltà.</small></div>
+      <div><span>📈</span><b>Migliora</b><small>Guarda i tuoi progressi e ripassa gli errori che ripeti più spesso.</small></div>
+    </div>
+  </section>
+
+  <div class="chips tabs" id="modi"></div>
+
+  <section id="sezCat" hidden>
+    <h2><span>1</span> Cosa vuoi studiare?</h2>
+    <div class="chips" id="categorie"></div>
+  </section>
+
+  <section>
+    <h2><span id="numLiv">1</span> Scegli il livello</h2>
+    <div class="chips" id="livelli"></div>
+    <p class="nota" id="descLivello"></p>
+  </section>
+
+  <section>
+    <h2><span id="numQta">2</span> Quante domande?</h2>
+    <div class="chips" id="quantita"></div>
+  </section>
+
+  <section>
+    <h2><span id="numGioco">3</span> Scegli il gioco</h2>
+    <div class="cards" id="giochi"></div>
+  </section>
+
+  <footer>Confini, fiumi e carta fisica: Natural Earth (dominio pubblico). Quote del terreno: Terrain Tiles su AWS Open Data (da SRTM, ETOPO1 e altre fonti pubbliche). Dati arrotondati e aggiornati al 2026: per le verifiche fa fede il libro di testo.</footer>
+</main>
+
+<main id="gioco" class="schermata" hidden>
+  <div class="barra">
+    <button class="btn-testo" id="esci">← Menu</button>
+    <div class="stat" id="stat"></div>
+  </div>
+  <div class="prog"><div id="barraProg"></div></div>
+  <div class="domanda" id="domanda"></div>
+
+  <div class="mappa-wrap">
+    <svg id="mappa" role="img" aria-label="Mappa dell'Europa" data-modo="stati"></svg>
+    <div class="zoom">
+      <button id="zPiu" aria-label="Ingrandisci">+</button>
+      <button id="zMeno" aria-label="Riduci">−</button>
+      <button id="zReset" aria-label="Vista intera">⤢</button>
+    </div>
+  </div>
+
+  <div class="pannello" id="pannello"></div>
+</main>
+
+<main id="fine" class="schermata" hidden></main>
+<main id="progressi" class="schermata" hidden></main>
+
+<script src="dati/europa.js"></script>
+<script src="dati/fisico.js"></script>
+<script src="paesi.js"></script>
+<script src="contenuti.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
