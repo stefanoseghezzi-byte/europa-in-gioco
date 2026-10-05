@@ -282,6 +282,20 @@ function vaiA(id) {
   const w = 240; vb = { x: c[0] - w / 2, y: c[1] - w * E.H / E.W / 2, w, h: w * E.H / E.W }; applicaVista();
 }
 $('zPiu').onclick = () => zoomIn(0.6); $('zMeno').onclick = () => zoomIn(1 / 0.6); $('zReset').onclick = vistaIntera;
+// schermo intero: ingrandisce l'intera schermata di gioco (mappa, domanda e risposte); dove il browser non lo consente, riempie la finestra
+let fsReale = false;
+function schermoIntero(on) {
+  const g = $('gioco');
+  g.classList.toggle('schermo-intero', on);
+  $('zFull').title = on ? 'Esci dallo schermo intero' : 'Schermo intero';
+  $('zFull').setAttribute('aria-label', $('zFull').title);
+  if (on) { try { if (g.requestFullscreen) g.requestFullscreen().catch(() => {}); } catch {} }
+  else { try { if (document.fullscreenElement) document.exitFullscreen(); } catch {} fsReale = false; }
+  window.scrollTo(0, 0);
+}
+$('zFull').onclick = () => schermoIntero(!$('gioco').classList.contains('schermo-intero'));
+document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement) fsReale = true; else if (fsReale) schermoIntero(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('gioco').classList.contains('schermo-intero')) schermoIntero(false); });
 svg.addEventListener('wheel', e => { e.preventDefault(); zoomIn(e.deltaY < 0 ? 0.85 : 1 / 0.85, e.clientX, e.clientY); }, { passive: false });
 
 const ptr = new Map(); let mosso = false, trascinato = 0, d0 = 0, w0 = 0;
@@ -678,7 +692,7 @@ function finisci() {
   $('vaiProg').onclick = () => { disegnaProgressi(); mostra('progressi'); };
   $('menu').onclick = esciMenu;
 }
-function esciMenu() { clearInterval(timer); S = null; disegnaHome(); mostra('home'); }
+function esciMenu() { if ($('gioco').classList.contains('schermo-intero')) schermoIntero(false); clearInterval(timer); S = null; disegnaHome(); mostra('home'); }
 $('esci').onclick = esciMenu;
 
 // ---------- i miei progressi ----------

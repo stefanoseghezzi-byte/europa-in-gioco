@@ -243,3 +243,9 @@ svg[data-modo="fisico"] .gsea { clip-path: url(#soloMare); }
 .hero-passi small { display: block; margin-top: 3px; color: var(--tenue); font-size: .86rem; }
 
 .area-csv { width: 100%; margin-top: 8px; padding: 10px; border-radius: 12px; border: 1px solid var(--bordo); background: var(--scheda); color: var(--testo); font: .85rem ui-monospace, Menlo, monospace; }
+
+/* ----- schermo intero ----- */
+.zoom button svg { display: block; margin: auto; }
+#gioco.schermo-intero { position: fixed; inset: 0; z-index: 60; max-width: none; margin: 0; padding: 10px 16px 24px; overflow-y: auto; background: var(--sfondo); }
+#gioco.schermo-intero .mappa-wrap { max-width: calc(76vh * 1.25); }
+#gioco.schermo-intero #mappa { max-height: 76vh; }
