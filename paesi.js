@@ -16,7 +16,7 @@
     'Con i territori d\'oltremare ha più fusi orari di qualsiasi altro Stato al mondo.', 'Dati riferiti alla Francia metropolitana (senza l\'oltremare).');
   S('ITA', 'Italia', 'Roma', 1, 'Europa meridionale', 'Europa meridionale: una penisola nel Mediterraneo, con Sicilia e Sardegna', 302070, 58950000, 'Euro', 'Italiano', 'Repubblica parlamentare', true, 'Dal 1957 (fondatore)', true, true, 'Francia, Svizzera, Austria, Slovenia, San Marino, Città del Vaticano',
     'Dentro i suoi confini ci sono due Stati indipendenti: San Marino e Città del Vaticano.');
-  S('DEU', 'Germania', 'Berlino', 1, 'Europa centrale', 'Europa centrale, tra Mare del Nord, Baltico e Alpi', 357600, 83450000, 'Euro', 'Tedesco', 'Repubblica federale (16 Länder)', true, 'Dal 1957 (fondatore)', true, true, 'Danimarca, Polonia, Cechia, Austria, Svizzera, Francia, Lussemburgo, Belgio, Paesi Bassi',
+  S('DEU', 'Germania', 'Berlino', 1, 'Europa centrale', 'Europa centrale, tra Mare del Nord, Baltico e Alpi', 357600, 83450000, 'Euro', 'Tedesco', 'Repubblica federale (16 Länder)', true, 'Dal 1957 (fondatore)', true, true, 'Danimarca, Polonia, Repubblica Ceca, Austria, Svizzera, Francia, Lussemburgo, Belgio, Paesi Bassi',
     'Confina con 9 Stati, più di ogni altro Paese dell\'UE (escludendo i territori d\'oltremare).');
   S('GBR', 'Regno Unito', 'Londra', 1, 'Europa occidentale', 'Isole britanniche, nell\'Atlantico settentrionale', 243600, 68300000, 'Sterlina', 'Inglese', 'Monarchia parlamentare', false, 'Uscito nel 2020 (Brexit)', false, false, 'Irlanda (sul confine dell\'Irlanda del Nord)',
     'È formato da quattro nazioni: Inghilterra, Scozia, Galles e Irlanda del Nord. Ha lasciato l\'UE il 31 gennaio 2020.');
@@ -38,12 +38,12 @@
     'Bruxelles ospita le principali istituzioni dell\'UE e il quartier generale della NATO.');
   S('CHE', 'Svizzera', 'Berna', 1, 'Europa centrale', 'Europa centrale, tra le Alpi e il Giura', 41300, 8960000, 'Franco svizzero', 'Tedesco, francese, italiano, romancio', 'Repubblica federale (26 cantoni)', false, 'Non UE (accordi bilaterali)', false, true, 'Germania, Francia, Italia, Austria, Liechtenstein',
     'Non è nell\'UE, ma fa parte di Schengen e del mercato unico grazie ad accordi bilaterali.');
-  S('AUT', 'Austria', 'Vienna', 1, 'Europa centrale', 'Europa centrale, in gran parte sulle Alpi', 83900, 9170000, 'Euro', 'Tedesco', 'Repubblica federale', true, 'Dal 1995', true, true, 'Germania, Cechia, Slovacchia, Ungheria, Slovenia, Italia, Svizzera, Liechtenstein',
+  S('AUT', 'Austria', 'Vienna', 1, 'Europa centrale', 'Europa centrale, in gran parte sulle Alpi', 83900, 9170000, 'Euro', 'Tedesco', 'Repubblica federale', true, 'Dal 1995', true, true, 'Germania, Repubblica Ceca, Slovacchia, Ungheria, Slovenia, Italia, Svizzera, Liechtenstein',
     'È neutrale dal 1955 e confina con 8 Stati.');
-  S('POL', 'Polonia', 'Varsavia', 1, 'Europa centrale', 'Europa centro-orientale, sul Mar Baltico', 312700, 36600000, 'Złoty', 'Polacco', 'Repubblica parlamentare', true, 'Dal 2004', false, true, 'Germania, Cechia, Slovacchia, Ucraina, Bielorussia, Lituania, Russia',
+  S('POL', 'Polonia', 'Varsavia', 1, 'Europa centrale', 'Europa centro-orientale, sul Mar Baltico', 312700, 36600000, 'Złoty', 'Polacco', 'Repubblica parlamentare', true, 'Dal 2004', false, true, 'Germania, Repubblica Ceca, Slovacchia, Ucraina, Bielorussia, Lituania, Russia',
     'È il Paese più popoloso tra quelli entrati nell\'UE nel 2004.');
-  S('CZE', 'Cechia', 'Praga', 1, 'Europa centrale', 'Europa centrale, senza sbocco sul mare', 78900, 10900000, 'Corona ceca', 'Ceco', 'Repubblica parlamentare', true, 'Dal 2004', false, true, 'Germania, Polonia, Slovacchia, Austria',
-    'Dal 1993 è indipendente: la Cecoslovacchia si divise pacificamente in Cechia e Slovacchia.');
+  S('CZE', 'Repubblica Ceca', 'Praga', 1, 'Europa centrale', 'Europa centrale, senza sbocco sul mare', 78900, 10900000, 'Corona ceca', 'Ceco', 'Repubblica parlamentare', true, 'Dal 2004', false, true, 'Germania, Polonia, Slovacchia, Austria',
+    'Dal 1993 è indipendente: la Cecoslovacchia si divise pacificamente in Repubblica Ceca e Slovacchia.');
   S('HUN', 'Ungheria', 'Budapest', 1, 'Europa centrale', 'Europa centrale, nella pianura pannonica', 93000, 9590000, 'Fiorino ungherese', 'Ungherese', 'Repubblica parlamentare', true, 'Dal 2004', false, true, 'Austria, Slovacchia, Ucraina, Romania, Serbia, Croazia, Slovenia',
     'Budapest è nata nel 1873 dall\'unione di tre città: Buda, Óbuda e Pest, divise dal Danubio.');
   S('ROU', 'Romania', 'Bucarest', 1, 'Europa orientale', 'Europa orientale, tra Carpazi e Mar Nero', 238400, 19000000, 'Leu rumeno', 'Rumeno', 'Repubblica semipresidenziale', true, 'Dal 2007', false, true, 'Ungheria, Ucraina, Moldavia, Bulgaria, Serbia',
@@ -62,7 +62,7 @@
     'Dal 1° gennaio 2026 ha adottato l\'euro, diventando il 21° Paese dell\'eurozona.');
   S('HRV', 'Croazia', 'Zagabria', 2, 'Balcani', 'Tra Pianura pannonica e costa adriatica', 56600, 3860000, 'Euro', 'Croato', 'Repubblica parlamentare', true, 'Dal 2013', true, true, 'Slovenia, Ungheria, Serbia, Bosnia ed Erzegovina, Montenegro',
     'Dal 1° gennaio 2023 è entrata sia nell\'euro sia nell\'area Schengen.');
-  S('SVK', 'Slovacchia', 'Bratislava', 2, 'Europa centrale', 'Europa centrale, senza sbocco sul mare', 49000, 5420000, 'Euro', 'Slovacco', 'Repubblica parlamentare', true, 'Dal 2004', true, true, 'Cechia, Polonia, Ucraina, Ungheria, Austria',
+  S('SVK', 'Slovacchia', 'Bratislava', 2, 'Europa centrale', 'Europa centrale, senza sbocco sul mare', 49000, 5420000, 'Euro', 'Slovacco', 'Repubblica parlamentare', true, 'Dal 2004', true, true, 'Repubblica Ceca, Polonia, Ucraina, Ungheria, Austria',
     'Bratislava è l\'unica capitale al mondo che confina con due Stati stranieri: Austria e Ungheria.');
   S('SVN', 'Slovenia', 'Lubiana', 2, 'Europa centrale', 'Tra Alpi e Adriatico', 20300, 2120000, 'Euro', 'Sloveno', 'Repubblica parlamentare', true, 'Dal 2004', true, true, 'Italia, Austria, Ungheria, Croazia',
     'È stata la prima ex repubblica jugoslava a entrare nell\'UE (2004) e ad adottare l\'euro (2007).');
