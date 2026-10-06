@@ -145,7 +145,7 @@ function disegnaHome() {
   });
   disegnaProfili();
 }
-function mostra(id) { ['home', 'gioco', 'fine', 'progressi'].forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); }
+function mostra(id) { if (id !== 'gioco' && $('gioco').classList.contains('schermo-intero')) schermoIntero(false); ['home', 'gioco', 'fine', 'progressi'].forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); }
 
 // ---------- profili ----------
 function disegnaProfili() {
