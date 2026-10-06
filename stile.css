@@ -249,3 +249,9 @@ svg[data-modo="fisico"] .gsea { clip-path: url(#soloMare); }
 #gioco.schermo-intero { position: fixed; inset: 0; z-index: 60; max-width: none; margin: 0; padding: 10px 16px 24px; overflow-y: auto; background: var(--sfondo); }
 #gioco.schermo-intero .mappa-wrap { max-width: calc(76vh * 1.25); }
 #gioco.schermo-intero #mappa { max-height: 76vh; }
+
+/* pianure e penisole: lo stato evidenziato/corretto/errato deve vincere sul colore di base (.attivo ha la stessa specificità) */
+.fis.poly.cat-pianure.evidenzia, .fis.poly.cat-penisole.evidenzia { fill: rgba(255,214,90,.8); stroke: #6b5a1c; stroke-width: 2; stroke-dasharray: none; }
+.fis.poly.cat-pianure.giusto, .fis.poly.cat-penisole.giusto { fill: rgba(130,205,145,.85); stroke: var(--giusto-b); stroke-width: 2; stroke-dasharray: none; }
+.fis.poly.cat-pianure.sbagliato, .fis.poly.cat-penisole.sbagliato { fill: rgba(240,140,140,.85); stroke: var(--sbagliato-b); stroke-width: 2; stroke-dasharray: none; }
+.fis.poly.cat-pianure.manca, .fis.poly.cat-penisole.manca { fill: rgba(246,180,110,.85); stroke: var(--manca-b); stroke-width: 2; stroke-dasharray: none; }
