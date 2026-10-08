@@ -60,7 +60,10 @@
   C('mare_tirreno', 2, 'ITA FRA');
   C('mare_ionio', 2, 'ITA GRC ALB');
   C('mare_egeo', 2, 'GRC TUR');
-  C('mare_manica', 2, 'GBR FRA');
+  C('stretto_manica', 1, 'GBR FRA', '', 'Quali Stati si affacciano sul Canale della Manica?', 'Sotto il canale corre il tunnel ferroviario Eurotunnel, lungo circa 50 km, inaugurato nel 1994.');
+  C('stretto_bosforo', 1, 'TUR', '', 'In quale Stato si trova lo Stretto del Bosforo?', 'Sulle sue sponde sorge Istanbul, l\'unica grande città del mondo divisa tra Europa e Asia.');
+  C('stretto_dardanelli', 1, 'TUR', '', 'In quale Stato si trova lo Stretto dei Dardanelli?', 'Nell\'antichità si chiamava Ellesponto; secondo il mito vi annegò Elle, da cui il nome.');
+  C('stretto_gibilterra', 1, 'ESP', '', 'Quale Stato europeo si affaccia sullo Stretto di Gibilterra?', 'È largo appena 14 km nel punto più stretto. Gibilterra è un territorio britannico d\'oltremare rivendicato dalla Spagna.');
   C('mare_biscaglia', 2, 'FRA ESP');
   C('mare_norvegia', 2, 'NOR', 'ISL');
   C('mare_barents', 2, 'NOR RUS');
@@ -117,7 +120,6 @@
   C('pen_kola', 3, 'RUS', '', null, 'Nel porto di Severomorsk ha sede la Flotta del Nord russa.');
   C('mare_finlandia', 3, 'FIN EST RUS', '', 'Quali Stati bagna il Golfo di Finlandia?', 'Dall\'ingresso della Finlandia nella NATO (2023), tutte le coste del golfo, tranne quelle russe, appartengono a Paesi NATO.');
   C('mare_bianco', 3, 'RUS', '', null, 'Il canale Mar Bianco–Baltico, costruito negli anni Trenta, lo collega al Mar Baltico.');
-  C('mare_gibilterra', 3, 'ESP', '', 'Quale Stato europeo si affaccia sullo Stretto di Gibilterra?', 'È largo appena 14 km nel punto più stretto. Gibilterra è un territorio britannico d\'oltremare rivendicato dalla Spagna.');
   C('mare_baleari', 3, 'ESP', '', null, 'Il nome deriva dai frombolieri «baleari», abili nell\'antichità a lanciare pietre con la fionda.');
   C('mare_leone', 3, 'FRA ESP', '', null, 'Qui soffiano venti freddi e forti come il Mistral, che scende lungo la valle del Rodano.');
   C('fiume_duero', 3, 'ESP PRT', '', null, 'Sfocia a Porto, e le sue valli producono il vino che porta il nome della città.');

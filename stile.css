@@ -1,10 +1,11 @@
-/* ===== Europa in gioco — tema chiaro rilassante (predefinito) + tema scuro opzionale ===== */
+/* ===== Geografia in gioco (Europa e Mondo) — tema chiaro rilassante (predefinito) + tema scuro opzionale ===== */
 :root {
   --sfondo: #f3f8f7; --sfondo2: #eaf3f8; --scheda: #ffffff; --testo: #2c3b44; --tenue: #6a7b85; --bordo: #d9e5e9;
   --accento: #4d8fb5; --accento-2: #3a7699; --accento-soft: #e3f0f7; --ombra: 0 6px 20px rgba(60, 100, 120, .10);
   --mare: #d3e9f3; --terra: #f6f0dc; --terra-bordo: #b8ad8a; --contesto: #e8e5d9;
   --giusto: #a8dcb3; --giusto-b: #4f9e63; --sbagliato: #f5b8b8; --sbagliato-b: #c96a6a; --manca: #f8d2a2; --manca-b: #d08a2e;
   --evidenzia: #ffe08a; --ue: #9ec5ea; --sel: #b7d6f3;
+  --c0: #9ec5ea; --c1: #f2cf8a; --c2: #b9d98f; --c3: #e6a7a0; --c4: #f0b97c; --c5: #c5aee0; --c6: #8fd5cf;
   --alto: #8fd0a0; --medio: #f3dc8c; --basso: #f2a9a9;
   --monti: #9a7653; --fiumi: #3f87c2; --pianura: 140, 195, 120; --penisola: 215, 150, 175;
 }
@@ -14,6 +15,7 @@
   --mare: #1f3a50; --terra: #e9e1c3; --terra-bordo: #6c6650; --contesto: #3a4044;
   --giusto: #5fa972; --giusto-b: #8ed9a0; --sbagliato: #c26a6a; --sbagliato-b: #f1a0a0; --manca: #d29a52; --manca-b: #f3c88c;
   --evidenzia: #f1c94e; --ue: #6f9fd0; --sel: #6d9ccb;
+  --c0: #6f9fd0; --c1: #cfa95a; --c2: #8bb15d; --c3: #c47e77; --c4: #c98f4d; --c5: #9a82c0; --c6: #56a9a2;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -76,7 +78,7 @@ footer { margin-top: 36px; color: var(--tenue); font-size: .8rem; text-align: ce
 .domanda { font-size: 1.3rem; font-weight: 700; margin: 6px 0 12px; min-height: 2.2em; }
 .domanda small { font-weight: 500; color: var(--tenue); font-size: .9rem; display: block; margin-top: 2px; }
 .tipo { font-weight: 500; color: var(--tenue); font-size: .95rem; }
-.mappa-wrap { max-width: calc(66vh * 1.25); margin: 0 auto; position: relative; border-radius: 20px; overflow: hidden; border: 1px solid var(--bordo); background: var(--mare); box-shadow: var(--ombra); }
+.mappa-wrap { max-width: calc(66vh * var(--rapporto, 1.25)); margin: 0 auto; position: relative; border-radius: 20px; overflow: hidden; border: 1px solid var(--bordo); background: var(--mare); box-shadow: var(--ombra); }
 #mappa { display: block; width: 100%; height: auto; max-height: 68vh; touch-action: none; user-select: none; -webkit-user-select: none; }
 .zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; }
 .zoom button { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--bordo); background: color-mix(in srgb, var(--scheda) 92%, transparent); font-size: 1.15rem; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
@@ -154,6 +156,13 @@ footer { margin-top: 36px; color: var(--tenue); font-size: .8rem; text-align: ce
 .marker { fill: var(--terra); stroke: var(--terra-bordo); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
 .interattivo .attiva:hover, .interattivo .marker:hover { fill: #fbe9a8; cursor: pointer; }
 .attiva.ue, .marker.ue { fill: var(--ue); }
+.attiva.cont-0, .marker.cont-0 { fill: var(--c0); }
+.attiva.cont-1, .marker.cont-1 { fill: var(--c1); }
+.attiva.cont-2, .marker.cont-2 { fill: var(--c2); }
+.attiva.cont-3, .marker.cont-3 { fill: var(--c3); }
+.attiva.cont-4, .marker.cont-4 { fill: var(--c4); }
+.attiva.cont-5, .marker.cont-5 { fill: var(--c5); }
+.attiva.cont-6, .marker.cont-6 { fill: var(--c6); }
 .attiva.evidenzia, .marker.evidenzia { fill: var(--evidenzia); stroke: #6b5a1c; stroke-width: 2; }
 .attiva.sel, .marker.sel { fill: var(--sel); stroke: #2f6ba6; stroke-width: 2; }
 .attiva.giusto, .marker.giusto { fill: var(--giusto); stroke: var(--giusto-b); stroke-width: 1.6; }
@@ -169,22 +178,26 @@ svg[data-modo="fisico"] .terra { fill: var(--terra); stroke: rgba(90,80,50,.28);
 svg[data-modo="fisico"] .terra.attiva { pointer-events: none; }
 .fis:not(.attivo), .fmark:not(.attivo) { pointer-events: none; }
 .fis.poly { fill: transparent; stroke: none; }
-.fis.cat-laghi { fill: #9fd0ea; stroke: #4a8db8; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.fis.cat-laghi { fill: #7fbfe6; stroke: #1f6797; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
 .fis.cat-isole { fill: var(--terra); stroke: var(--terra-bordo); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .fis.poly.cat-penisole.attivo { fill: rgba(var(--penisola), .30); stroke: rgba(170,95,125,.8); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
 .fis.poly.cat-pianure.attivo { fill: rgba(var(--pianura), .42); stroke: rgba(80,140,70,.75); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .fis.line { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .fis.cat-fiumi { stroke: var(--fiumi); stroke-width: 2.4; }
+.fis.cat-stretti.line { stroke: #1d8a9c; stroke-width: 6; opacity: .9; }
 .fis.cat-monti { stroke: var(--monti); stroke-width: 6; opacity: .82; }
 .fis.hitline { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; vector-effect: non-scaling-stroke; }
 .fis.hitline:not(.attivo) { pointer-events: none; }
 .fis.pt { fill: #b5563a; stroke: #fff; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
 .fmark { fill: transparent; stroke: none; }
-.interattivo .fis.poly.attivo.cat-penisole:hover, .interattivo .fis.poly.attivo.cat-mari:hover, .interattivo .fis.poly.attivo.cat-pianure:hover { fill: rgba(255,226,120,.55); cursor: pointer; }
+.fmark-lago.attivo { fill: rgba(127,191,230,.3); stroke: #1f6797; stroke-width: 1.4; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }
+.interattivo .fis.poly.attivo.cat-penisole:hover, .interattivo .fis.poly.attivo.cat-mari:hover, .interattivo .fis.poly.attivo.cat-stretti:hover, .interattivo .fis.poly.attivo.cat-pianure:hover { fill: rgba(255,226,120,.55); cursor: pointer; }
 .interattivo .fis.attivo:hover { cursor: pointer; }
 .interattivo .fis.line.cat-fiumi.attivo:hover { stroke: #1f5f99; }
 .fis.poly.evidenzia, .fmark.evidenzia { fill: rgba(255,214,90,.8); stroke: #6b5a1c; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .fis.line.cat-fiumi.evidenzia { stroke: #f2a300; stroke-width: 5; }
+.fis.line.cat-stretti.evidenzia { stroke: #f2a300; stroke-width: 8; opacity: 1; }
+.interattivo .fis.line.cat-stretti.attivo:hover { stroke: #f2a300; }
 .fis.line.cat-monti.evidenzia { stroke: #e2a400; opacity: 1; }
 .fis.pt.evidenzia { fill: #ffd23f; stroke: #6b5a1c; stroke-width: 2; }
 .fis.poly.giusto, .fmark.giusto { fill: rgba(130,205,145,.85); stroke: var(--giusto-b); stroke-width: 2; vector-effect: non-scaling-stroke; }
@@ -193,7 +206,7 @@ svg[data-modo="fisico"] .terra.attiva { pointer-events: none; }
 .fis.line.sbagliato, .fis.line.cat-fiumi.sbagliato { stroke: #e05f5f; stroke-width: 5; opacity: 1; } .fis.pt.sbagliato { fill: #f08a8a; }
 .fis.poly.manca, .fmark.manca { fill: rgba(246,180,110,.85); stroke: var(--manca-b); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .fis.line.manca, .fis.line.cat-fiumi.manca { stroke: #f08a1c; stroke-width: 5; opacity: 1; } .fis.pt.manca { fill: #f6b26b; }
-.etichetta.cat-mari { font-style: italic; fill: #1f5580; }
+.etichetta.cat-mari, .etichetta.cat-stretti { font-style: italic; fill: #1f5580; }
 .etichetta.cat-fiumi { fill: #17598f; }
 .etichetta.cat-monti, .etichetta.cat-vette { fill: #5b3d22; }
 .etichetta.cat-pianure { fill: #2f6a2c; }
@@ -247,7 +260,7 @@ svg[data-modo="fisico"] .gsea { clip-path: url(#soloMare); }
 /* ----- schermo intero ----- */
 .zoom button svg { display: block; margin: auto; }
 #gioco.schermo-intero { position: fixed; inset: 0; z-index: 60; max-width: none; margin: 0; padding: 10px 16px 24px; overflow-y: auto; background: var(--sfondo); }
-#gioco.schermo-intero .mappa-wrap { max-width: calc(76vh * 1.25); }
+#gioco.schermo-intero .mappa-wrap { max-width: calc(76vh * var(--rapporto, 1.25)); }
 #gioco.schermo-intero #mappa { max-height: 76vh; }
 
 /* pianure e penisole: lo stato evidenziato/corretto/errato deve vincere sul colore di base (.attivo ha la stessa specificità) */
@@ -255,3 +268,69 @@ svg[data-modo="fisico"] .gsea { clip-path: url(#soloMare); }
 .fis.poly.cat-pianure.giusto, .fis.poly.cat-penisole.giusto { fill: rgba(130,205,145,.85); stroke: var(--giusto-b); stroke-width: 2; stroke-dasharray: none; }
 .fis.poly.cat-pianure.sbagliato, .fis.poly.cat-penisole.sbagliato { fill: rgba(240,140,140,.85); stroke: var(--sbagliato-b); stroke-width: 2; stroke-dasharray: none; }
 .fis.poly.cat-pianure.manca, .fis.poly.cat-penisole.manca { fill: rgba(246,180,110,.85); stroke: var(--manca-b); stroke-width: 2; stroke-dasharray: none; }
+
+/* ---------- Costruisci il tuo Stato ---------- */
+.attiva.mio { fill: #8fc0e8; stroke: #2f6ba6; stroke-width: 1.6; }
+.attiva.capitale { stroke: #12365e; stroke-width: 3; }
+.attiva.bersaglio { fill: #f6c58d; stroke: #c9731a; stroke-width: 2; }
+.attiva.scelto { fill: #ffe08a; stroke: #6b5a1c; stroke-width: 3; }
+.armate-c { fill: #fff; stroke: #888; stroke-width: 1; }
+.armate.mia .armate-c { fill: #2f6ba6; stroke: #12365e; }
+.armate-t { text-anchor: middle; font: 700 11px system-ui, sans-serif; fill: #222; }
+.armate.mia .armate-t { fill: #fff; }
+.pilastri { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.pilastro { background: var(--scheda); border: 1px solid var(--bordo); border-radius: 12px; padding: 8px 10px; }
+.pilastro.ok { border-color: var(--giusto-b); background: color-mix(in srgb, var(--giusto) 28%, var(--scheda)); }
+.pil-b { height: 8px; background: var(--bordo); border-radius: 6px; margin: 6px 0 4px; overflow: hidden; }
+.pil-b i { display: block; height: 100%; background: var(--accento); }
+.pilastro small, .az small { display: block; color: var(--tenue); font-size: .8rem; }
+.rk-stab { margin: 8px 0 0; font-size: .95rem; } .rk-stab.ko { color: #b3261e; font-weight: 600; }
+.rk-tit { margin: 14px 0 6px; font-weight: 700; font-size: .95rem; }
+.az-griglia { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.az { text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--bordo); background: var(--scheda); color: inherit; cursor: pointer; font: inherit; }
+.az:hover:not(:disabled) { border-color: var(--accento); }
+.az:disabled { opacity: .55; cursor: default; } .az.fatto { opacity: 1; background: color-mix(in srgb, var(--giusto) 28%, var(--scheda)); border-color: var(--giusto-b); }
+@media (max-width: 560px) { .pilastri { grid-template-columns: 1fr; } }
+
+
+/* ----- sezioni: Europa (seconda media) e Mondo (terza media) ----- */
+.sezioni { display: flex; gap: 10px; margin: 18px 0 0; }
+.sez-btn { flex: 1; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; text-align: left; padding: 12px 16px; border-radius: 18px;
+  border: 2px solid var(--bordo); background: var(--scheda); box-shadow: var(--ombra); transition: border-color .15s, transform .1s; }
+.sez-btn:hover { border-color: var(--accento); }
+.sez-btn[aria-pressed="true"] { border-color: var(--accento); background: var(--accento); color: #fff; }
+.sez-ico { grid-row: 1 / 3; font-size: 1.9rem; }
+.sez-btn b { font-size: 1.15rem; line-height: 1.15; align-self: end; }
+.sez-btn small { color: var(--tenue); font-size: .85rem; align-self: start; }
+.sez-btn[aria-pressed="true"] small { color: rgba(255,255,255,.88); }
+.sezioni.carico { opacity: .6; pointer-events: none; }
+.chip:disabled { cursor: not-allowed; }
+@media (max-width: 480px) { .sez-btn { padding: 10px 12px; column-gap: 8px; } .sez-ico { font-size: 1.5rem; } .sez-btn b { font-size: 1.02rem; } }
+
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0; font-size: .86rem; color: var(--tenue); }
+.legenda:empty { display: none; }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda i { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,.2); }
+.legenda i.cont-0 { background: var(--c0); }
+.legenda i.cont-1 { background: var(--c1); }
+.legenda i.cont-2 { background: var(--c2); }
+.legenda i.cont-3 { background: var(--c3); }
+.legenda i.cont-4 { background: var(--c4); }
+.legenda i.cont-5 { background: var(--c5); }
+.legenda i.cont-6 { background: var(--c6); }
+/* mondo su schermi stretti: la mappa è bassa, i pulsanti di zoom vanno in fila in basso */
+@media (max-width: 640px) {
+  #gioco.sez-mondo:not(.schermo-intero) .zoom { top: auto; bottom: 6px; right: 6px; flex-direction: row; gap: 4px; }
+  #gioco.sez-mondo:not(.schermo-intero) .zoom button { width: 32px; height: 32px; border-radius: 10px; font-size: 1rem; }
+}
+
+/* ----- geografia fisica del mondo: catene montuose e deserti come aree ----- */
+.fis.poly.cat-monti.attivo { fill: rgba(154, 118, 83, .38); stroke: rgba(120, 85, 55, .8); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.fis.poly.cat-deserti.attivo { fill: rgba(226, 178, 80, .38); stroke: rgba(176, 124, 30, .8); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.interattivo .fis.poly.attivo.cat-monti:hover, .interattivo .fis.poly.attivo.cat-deserti:hover { fill: rgba(255, 226, 120, .55); cursor: pointer; }
+.fis.poly.cat-monti.evidenzia, .fis.poly.cat-deserti.evidenzia { fill: rgba(255, 214, 90, .8); stroke: #6b5a1c; stroke-width: 2; stroke-dasharray: none; }
+.fis.poly.cat-monti.giusto, .fis.poly.cat-deserti.giusto { fill: rgba(130, 205, 145, .85); stroke: var(--giusto-b); stroke-width: 2; stroke-dasharray: none; }
+.fis.poly.cat-monti.sbagliato, .fis.poly.cat-deserti.sbagliato { fill: rgba(240, 140, 140, .85); stroke: var(--sbagliato-b); stroke-width: 2; stroke-dasharray: none; }
+.fis.poly.cat-monti.manca, .fis.poly.cat-deserti.manca { fill: rgba(246, 180, 110, .85); stroke: var(--manca-b); stroke-width: 2; stroke-dasharray: none; }
+.etichetta.cat-deserti { fill: #7a5410; }
+:root[data-tema="scuro"] .etichetta.cat-deserti { fill: #f0f3f5; }

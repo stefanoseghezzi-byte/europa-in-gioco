@@ -1,15 +1,13 @@
 (() => {
 'use strict';
-const E = window.EUROPA, P = window.PAESI, F = window.FISICO, X = window.CONTENUTI || {};
-const per = Object.fromEntries(P.map(p => [p.id, p]));
-F.forEach(f => { if (X[f.id]) Object.assign(f, X[f.id]); else console.warn('Elemento senza contenuti:', f.id); });
-const fis = Object.fromEntries(F.map(f => [f.id, f]));
-const MICRO = ['MLT', 'AND', 'MCO', 'SMR', 'VAT', 'LIE'];
+// Dati della sezione attiva (Europa o Mondo): vengono impostati da impostaSezione()
+let E, P, F, X, per, fis, MICRO = [], SZ;
 const NS = 'http://www.w3.org/2000/svg';
 const $ = id => document.getElementById(id);
 
 const CATS = [
   { id: 'mari', nome: 'Mari e oceani', sing: 'mare', ico: '🌊', q: 'Quale mare (o oceano) è evidenziato?' },
+  { id: 'stretti', nome: 'Stretti e canali', sing: 'stretto o canale', ico: '↔️', q: 'Quale stretto (o canale) è evidenziato?' },
   { id: 'fiumi', nome: 'Fiumi', sing: 'fiume', ico: '🏞️', q: 'Quale fiume è evidenziato?' },
   { id: 'monti', nome: 'Catene montuose', sing: 'catena montuosa', ico: '⛰️', q: 'Quale catena montuosa è evidenziata?' },
   { id: 'pianure', nome: 'Pianure e altopiani', sing: 'pianura o altopiano', ico: '🌾', q: 'Quale pianura (o altopiano) è evidenziata?' },
@@ -17,6 +15,7 @@ const CATS = [
   { id: 'penisole', nome: 'Penisole', sing: 'penisola', ico: '🥾', q: 'Quale penisola è evidenziata?' },
   { id: 'isole', nome: 'Isole', sing: 'isola', ico: '🏝️', q: 'Quale isola è evidenziata?' },
   { id: 'laghi', nome: 'Laghi', sing: 'lago', ico: '💧', q: 'Quale lago è evidenziato?' },
+  { id: 'deserti', nome: 'Deserti', sing: 'deserto', ico: '🏜️', q: 'Quale deserto è evidenziato?' },
 ];
 const cat = id => CATS.find(c => c.id === id);
 const dato = id => per[id] || fis[id];
@@ -24,25 +23,29 @@ const nome = id => dato(id).nome;
 const nomeStato = id => (per[id] ? per[id].nome : id);
 
 const LIVELLI = [
-  { n: 1, nome: 'Facile', desc: n => modo === 'stati' ? `${n} Stati: i principali, quelli grandi e più conosciuti.` : `${n} elementi: quelli fondamentali del programma base.` },
-  { n: 2, nome: 'Medio', desc: n => modo === 'stati' ? `${n} Stati: si aggiungono i Balcani, i Paesi baltici e altri Stati medio-piccoli.` : `${n} elementi: tutte le catene montuose e gli elementi più importanti.` },
-  { n: 3, nome: 'Difficile', desc: n => modo === 'stati' ? `${n} Stati: tutti, compresi Malta, Kosovo e i microstati.` : `${n} elementi: anche i più piccoli, ognuno con una curiosità di attualità.` },
+  { n: 1, nome: 'Facile', desc: n => modo === 'fisico' ? `${n} elementi: quelli fondamentali del programma base.` : SZ.id === 'mondo' ? `${n} Stati: i più grandi e conosciuti di ogni continente.` : `${n} Stati: i principali, quelli grandi e più conosciuti.` },
+  { n: 2, nome: 'Medio', desc: n => modo === 'fisico' ? `${n} elementi: tutte le catene montuose e gli elementi più importanti.` : SZ.id === 'mondo' ? `${n} Stati: si aggiungono molti Stati di media grandezza.` : `${n} Stati: si aggiungono i Balcani, i Paesi baltici e altri Stati medio-piccoli.` },
+  { n: 3, nome: 'Difficile', desc: n => modo === 'fisico' ? `${n} elementi: anche i più piccoli, ognuno con una curiosità di attualità.` : SZ.id === 'mondo' ? `${n} Stati: tutti, compresi gli Stati insulari e i più piccoli.` : `${n} Stati: tutti, compresi Malta, Kosovo e i microstati.` },
 ];
+const TUTTE = ['europa', 'mondo'];
 const GIOCHI = [
-  { id: 'studio', ico: '📖', nome: 'Studio', desc: 'Esplora la mappa: tocca uno Stato per aprire la sua carta d\'identità.', punti: false, modo: 'stati' },
-  { id: 'trova', ico: '🎯', nome: 'Trova lo Stato', desc: 'Leggi il nome e cliccalo sulla mappa.', modo: 'stati' },
-  { id: 'indovina', ico: '❓', nome: 'Che Stato è?', desc: 'Uno Stato è evidenziato: scegli il nome giusto.', modo: 'stati' },
-  { id: 'capitali', ico: '🏛️', nome: 'Le capitali', desc: 'Uno Stato è evidenziato: scegli la sua capitale.', modo: 'stati' },
-  { id: 'ue', ico: '🇪🇺', nome: 'UE o non UE?', desc: 'Lo Stato evidenziato fa parte dell\'Unione europea?', modo: 'stati' },
-  { id: 'coloraUE', ico: '🟦', nome: 'Componi l\'UE', desc: 'Seleziona sulla mappa tutti gli Stati membri dell\'Unione europea.', modo: 'stati' },
-  { id: 'identita', ico: '🪪', nome: 'Carta d\'identità', desc: 'Moneta, lingua, posizione, abitanti, superficie: quanto conosci gli Stati?', modo: 'stati' },
-  { id: 'studio', ico: '📖', nome: 'Studio', desc: 'Esplora la mappa fisica: tocca un elemento per leggerne il nome e una curiosità.', punti: false, modo: 'fisico' },
-  { id: 'trova', ico: '🎯', nome: 'Trova sulla mappa', desc: 'Leggi il nome (di un fiume, un monte, un mare…) e cliccalo sulla mappa.', modo: 'fisico' },
-  { id: 'indovina', ico: '❓', nome: 'Che cos\'è?', desc: 'Un elemento è evidenziato: scegli il nome giusto.', modo: 'fisico' },
-  { id: 'legami', ico: '🔗', nome: 'Stati collegati', desc: 'Leggi il nome di un mare, un fiume, un monte… e seleziona sulla mappa gli Stati che tocca. Senza aiuti: devi ricordarlo!', modo: 'fisico' },
-  { id: 'elementi', ico: '🧩', nome: 'Cosa lo tocca?', desc: 'Uno Stato è evidenziato: scegli quali elementi fisici (fiumi, monti, mari…) si trovano lì.', modo: 'fisico' },
+  { id: 'studio', ico: '📖', nome: 'Studio', desc: 'Esplora la mappa: tocca uno Stato per aprire la sua carta d\'identità.', punti: false, modo: 'stati', sez: TUTTE },
+  { id: 'trova', ico: '🎯', nome: 'Trova lo Stato', desc: 'Leggi il nome e cliccalo sulla mappa.', modo: 'stati', sez: TUTTE },
+  { id: 'indovina', ico: '❓', nome: 'Che Stato è?', desc: 'Uno Stato è evidenziato: scegli il nome giusto.', modo: 'stati', sez: TUTTE },
+  { id: 'capitali', ico: '🏛️', nome: 'Le capitali', desc: 'Uno Stato è evidenziato: scegli la sua capitale.', modo: 'stati', sez: TUTTE },
+  { id: 'continente', ico: '🧭', nome: 'In che continente?', desc: 'Uno Stato è evidenziato: scegli il continente in cui si trova.', modo: 'stati', sez: ['mondo'] },
+  { id: 'coloraCont', ico: '🟩', nome: 'Componi il continente', desc: 'Seleziona sulla mappa tutti gli Stati di un continente.', modo: 'stati', sez: ['mondo'] },
+  { id: 'ue', ico: '🇪🇺', nome: 'UE o non UE?', desc: 'Lo Stato evidenziato fa parte dell\'Unione europea?', modo: 'stati', sez: ['europa'] },
+  { id: 'coloraUE', ico: '🟦', nome: 'Componi l\'UE', desc: 'Seleziona sulla mappa tutti gli Stati membri dell\'Unione europea.', modo: 'stati', sez: ['europa'] },
+  { id: 'risiko', ico: '⚔️', nome: 'Costruisci il tuo Stato', desc: 'Un Risiko con un obiettivo diverso: conquistare non basta, devi creare territorio, popolo e governo.', punti: false, modo: 'stati', sez: ['europa'] },
+  { id: 'identita', ico: '🪪', nome: 'Carta d\'identità', desc: 'Moneta, lingua, posizione, abitanti, superficie: quanto conosci gli Stati?', modo: 'stati', sez: TUTTE },
+  { id: 'studio', ico: '📖', nome: 'Studio', desc: 'Esplora la mappa fisica: tocca un elemento per leggerne il nome e una curiosità.', punti: false, modo: 'fisico', sez: TUTTE },
+  { id: 'trova', ico: '🎯', nome: 'Trova sulla mappa', desc: 'Leggi il nome (di un fiume, un monte, un mare…) e cliccalo sulla mappa.', modo: 'fisico', sez: TUTTE },
+  { id: 'indovina', ico: '❓', nome: 'Che cos\'è?', desc: 'Un elemento è evidenziato: scegli il nome giusto.', modo: 'fisico', sez: TUTTE },
+  { id: 'legami', ico: '🔗', nome: 'Stati collegati', desc: 'Leggi il nome di un mare, un fiume, un monte… e seleziona sulla mappa gli Stati che tocca. Senza aiuti: devi ricordarlo!', modo: 'fisico', sez: TUTTE },
+  { id: 'elementi', ico: '🧩', nome: 'Cosa lo tocca?', desc: 'Uno Stato è evidenziato: scegli quali elementi fisici (fiumi, monti, mari…) si trovano lì.', modo: 'fisico', sez: TUTTE },
 ];
-const TIPI = { elementi: 'elementi collegati', stati: 'Stati collegati', moneta: 'moneta', lingua: 'lingua', area: 'posizione', abitanti: 'abitanti', superficie: 'superficie', ue: 'UE', cap: 'capitale' };
+const TIPI = { cont: 'continente', elementi: 'elementi collegati', stati: 'Stati collegati', moneta: 'moneta', lingua: 'lingua', area: 'posizione', abitanti: 'abitanti', superficie: 'superficie', ue: 'UE', cap: 'capitale' };
 
 // ---------- memoria locale (impostazioni, profili, statistiche) ----------
 const mem = {
@@ -55,26 +58,88 @@ let profilo = mem.get('profilo', profili[0]);
 if (!profili.includes(profilo)) profilo = profili[0];
 const mp = { get: (k, d) => mem.get(`p_${profilo}_${k}`, d), set: (k, v) => mem.set(`p_${profilo}_${k}`, v), del: k => mem.del(`p_${profilo}_${k}`) };
 let livello = mem.get('liv', 1), quantita = mem.get('qta', 10), modo = mem.get('modo', 'stati');
-let cats = mem.get('cats', CATS.map(c => c.id)).filter(c => cat(c));
-if (!cats.length) cats = CATS.map(c => c.id);
+let sezione = mem.get('sez', 'europa');
+let cats = [];
+// categorie fisiche presenti nella sezione attiva (es. i deserti ci sono solo nel Mondo); la scelta è salvata per sezione
+const catsSez = () => CATS.filter(c => F.some(f => f.cat === c.id));
+const salvaCats = () => mem.set('cats' + SZ.suf, cats);
 let tema = mem.get('tema', null);
 if (tema === null) { const tv = document.documentElement.dataset.theme; tema = tv === 'dark' ? 'scuro' : 'chiaro'; }
 document.documentElement.dataset.tema = tema;
 
+// Ogni sezione ha le sue statistiche, le sue partite e i suoi record (Europa mantiene le chiavi di sempre)
+const kStat = () => 'stat' + SZ.suf, kSess = () => 'sess' + SZ.suf;
 function registra(chiave, ok) {
-  const st = mp.get('stat', {}), r = st[chiave] || { n: 0, e: 0, r: [] };
+  const st = mp.get(kStat(), {}), r = st[chiave] || { n: 0, e: 0, r: [] };
   r.n++; if (!ok) r.e++; r.r = [...r.r.slice(-5), ok ? 1 : 0]; r.t = Date.now(); st[chiave] = r;
-  mp.set('stat', st);
+  mp.set(kStat(), st);
 }
 const baseId = k => k.split('|')[0];
 const etichettaChiave = k => { const [b, t] = k.split('|'); return nome(b) + (t ? ` <small>(${TIPI[t] || t})</small>` : ''); };
 const gruppoChiave = k => { const b = baseId(k); if (k.endsWith('|elementi')) return 'Elementi collegati'; return per[b] ? 'Stati' : cat(fis[b].cat).nome; };
 
+const CLS_CONT = [0, 1, 2, 3, 4, 5, 6].map(i => 'cont-' + i);
 const mescola = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pool = liv => P.filter(p => p.liv <= liv);
 const poolFis = (liv, cs) => F.filter(f => cs.includes(f.cat) && f.liv <= liv);
 const poolModo = (m, liv, cs) => (m === 'stati' ? pool(liv) : poolFis(liv, cs));
-const chiaveRec = (g, m, liv, cs) => m === 'stati' ? `rec_${g}_${liv}` : `rec_fis_${g}_${liv}_${[...cs].sort().join('-')}`;
+const chiaveRec = (g, m, liv, cs) => m === 'stati' ? `${SZ.rec}${g}_${liv}` : `${SZ.rec}fis_${g}_${liv}_${[...cs].sort().join('-')}`;
+
+// ---------- sezioni: Europa (seconda media) e Mondo (terza media) ----------
+const SEZIONI = {
+  europa: {
+    id: 'europa', nome: 'Europa', suf: '', rec: 'rec_', zmax: 14, mk: [6, 0.12], etAdatt: false,
+    titolo: 'Impara l\'Europa giocando',
+    testo: 'Questo è un sito didattico per <b>studiare e imparare</b> la geografia dell\'Europa: gli <b>elementi fisici</b> (monti, pianure, mari, stretti, fiumi, isole, penisole e laghi), gli <b>Stati</b> e le <b>informazioni di base</b> su ciascuno, come capitale, moneta, lingua e appartenenza all\'Unione europea.',
+    moduli: [['stati', '🌍 Stati d\'Europa'], ['fisico', '⛰️ Geografia fisica']],
+    rilievo: 'dati/rilievo.webp', minW: 420, mappa: 'Mappa dell\'Europa', vistaIntera: 'Vista intera dell\'Europa (torna alla mappa completa)',
+    aree: ['Europa settentrionale', 'Europa occidentale', 'Europa centrale', 'Europa orientale', 'Europa meridionale', 'Balcani'],
+    areaDom: nome => `<b>${nome}</b>: in quale area d'Europa si trova?`,
+    piede: 'Confini, fiumi e carta fisica: Natural Earth (dominio pubblico). Quote del terreno: Terrain Tiles su AWS Open Data (da SRTM, ETOPO1 e altre fonti pubbliche). Dati arrotondati e aggiornati al 2026: per le verifiche fa fede il libro di testo.',
+  },
+  mondo: {
+    id: 'mondo', nome: 'Mondo', suf: '_m', rec: 'recm_', zmax: 40, mk: [7, 0.05], etAdatt: true,
+    titolo: 'Impara il mondo giocando',
+    testo: 'Questo è un sito didattico per <b>studiare e imparare</b> la geografia del mondo: i <b>continenti</b>, gli <b>Stati</b> di ogni parte della Terra e le <b>informazioni di base</b> su ciascuno, come capitale, moneta, lingua e abitanti., oltre alla <b>geografia fisica</b> (oceani, mari, catene montuose, fiumi, deserti, isole, penisole e laghi).',
+    moduli: [['stati', '🌍 Stati del mondo'], ['fisico', '⛰️ Geografia fisica']],
+    rilievo: 'dati/rilievo-mondo.webp', minW: 150, mappa: 'Mappa del mondo', vistaIntera: 'Vista intera del mondo (torna alla mappa completa)',
+    aree: [],
+    areaDom: nome => `<b>${nome}</b>: in quale continente si trova?`,
+    piede: 'Confini: Natural Earth (dominio pubblico). Dati arrotondati e aggiornati al 2025: per le verifiche fa fede il libro di testo. Alcuni confini e alcuni Stati (come Taiwan, Palestina e Kosovo) sono oggetto di dispute internazionali.',
+  },
+};
+const caricati = {};
+const carica = src => caricati[src] || (caricati[src] = new Promise((ok, ko) => {
+  const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => { delete caricati[src]; ko(new Error('Impossibile caricare ' + src)); };
+  document.head.appendChild(t);
+}));
+// Stati ambigui tra due continenti: non penalizzano nelle domande sul continente
+const ALT = { RUS: ['Europa', 'Asia'], TUR: ['Asia', 'Europa'], CYP: ['Asia', 'Europa'], KAZ: ['Asia', 'Europa'], ARM: ['Asia', 'Europa'], AZE: ['Asia', 'Europa'], GEO: ['Asia', 'Europa'], MEX: ['America centrale', 'America settentrionale'] };
+let sezPronta = null;
+async function impostaSezione(id) {
+  const z = SEZIONI[id] || SEZIONI.europa;
+  if (z.id === 'mondo') { await carica('dati/mondo.js'); await carica('mondo-paesi.js'); await carica('dati/mondo-fisico.js'); }
+  SZ = z; sezione = z.id; mem.set('sez', z.id);
+  if (z.id === 'europa') {
+    E = window.EUROPA; P = window.PAESI; F = window.FISICO; X = window.CONTENUTI || {};
+    if (!F.fatto) { F.forEach(f => { if (X[f.id]) Object.assign(f, X[f.id]); else console.warn('Elemento senza contenuti:', f.id); }); F.fatto = true; }
+    MICRO = ['MLT', 'AND', 'MCO', 'SMR', 'VAT', 'LIE'];
+  } else {
+    E = window.MONDO; P = window.PAESI_MONDO; F = window.FISICO_MONDO; X = {};
+    const idP = new Set(P.map(p => p.id)); MICRO = E.micro.filter(id => idP.has(id));
+    P.forEach(p => { p.area = p.cont; p.alt = p.amb ? (ALT[p.id] || [p.cont]) : null; });
+    const nomi = Object.fromEntries(P.map(p => [p.id, p.nome]));
+    P.forEach(p => { if (!p.confFatto) { p.conf = (E.conf[p.id] || []).filter(x => nomi[x] && x !== p.id).map(x => nomi[x]); p.confFatto = true; } });
+    SZ.aree = window.CONTINENTI;
+  }
+  per = Object.fromEntries(P.map(p => [p.id, p])); fis = Object.fromEntries(F.map(f => [f.id, f]));
+  if (!SZ.moduli.some(([m, , off]) => m === modo && !off)) { modo = 'stati'; mem.set('modo', modo); }
+  cats = mem.get('cats' + SZ.suf, catsSez().map(c => c.id)).filter(c => catsSez().some(x => x.id === c));
+  if (!cats.length) cats = catsSez().map(c => c.id);
+  document.title = 'Geografia in gioco · ' + z.nome;
+  $('gioco').classList.toggle('sez-mondo', z.id === 'mondo');
+  costruisciMappa();
+}
 
 // ---------- formati ----------
 const fmt = n => n.toLocaleString('it-IT');
@@ -86,30 +151,39 @@ const monetaBase = p => p.mon.replace(/ \(.*\)/, '');
 function disegnaHome() {
   $('nomeProfilo').textContent = profilo;
   $('btnTema').textContent = tema === 'chiaro' ? '🌙' : '☀️';
+  const SC = $('sezioni'); SC.innerHTML = '';
+  [['europa', '🇪🇺', 'Europa', 'Seconda media'], ['mondo', '🌍', 'Mondo', 'Terza media']].forEach(([id, ico, t, sub]) => {
+    const b = document.createElement('button'); b.className = 'sez-btn'; b.innerHTML = `<span class="sez-ico">${ico}</span><b>${t}</b><small>${sub}</small>`;
+    b.setAttribute('aria-pressed', id === SZ.id);
+    b.onclick = () => { if (id !== SZ.id) cambiaSezione(id); };
+    SC.appendChild(b);
+  });
+  $('heroTitolo').textContent = SZ.titolo; $('heroTesto').innerHTML = SZ.testo; $('piede').textContent = SZ.piede;
   const M = $('modi'); M.innerHTML = '';
-  [['stati', '🌍 Stati d\'Europa'], ['fisico', '⛰️ Geografia fisica']].forEach(([id, t]) => {
+  SZ.moduli.forEach(([id, t, off]) => {
     const b = document.createElement('button'); b.className = 'chip tab'; b.textContent = t;
     b.setAttribute('aria-pressed', id === modo);
+    if (off) { b.disabled = true; b.classList.add('vuoto'); }
     b.onclick = () => { modo = id; mem.set('modo', id); disegnaHome(); };
     M.appendChild(b);
   });
   const C = $('categorie'); C.innerHTML = '';
   $('sezCat').hidden = modo !== 'fisico';
   if (modo === 'fisico') {
-    CATS.forEach(c => {
+    catsSez().forEach(c => {
       const n = poolFis(livello, [c.id]).length;
       const b = document.createElement('button'); b.className = 'chip' + (n ? '' : ' vuoto'); b.textContent = `${c.ico} ${c.nome} (${n})`;
       b.setAttribute('aria-pressed', cats.includes(c.id));
       b.onclick = () => {
         cats = cats.includes(c.id) ? cats.filter(x => x !== c.id) : [...cats, c.id];
         if (!cats.length) cats = [c.id];
-        mem.set('cats', cats); disegnaHome();
+        salvaCats(); disegnaHome();
       };
       C.appendChild(b);
     });
     const tutte = document.createElement('button'); tutte.className = 'chip'; tutte.textContent = 'Tutte';
-    tutte.setAttribute('aria-pressed', cats.length === CATS.length);
-    tutte.onclick = () => { cats = CATS.map(c => c.id); mem.set('cats', cats); disegnaHome(); };
+    tutte.setAttribute('aria-pressed', cats.length === catsSez().length);
+    tutte.onclick = () => { cats = catsSez().map(c => c.id); salvaCats(); disegnaHome(); };
     C.appendChild(tutte);
   }
   $('numLiv').textContent = modo === 'fisico' ? '2' : '1';
@@ -132,7 +206,7 @@ function disegnaHome() {
     Q.appendChild(b);
   });
   const G = $('giochi'); G.innerHTML = '';
-  GIOCHI.filter(g => g.modo === modo).forEach(g => {
+  GIOCHI.filter(g => g.modo === modo && g.sez.includes(SZ.id)).forEach(g => {
     const b = document.createElement('button'); b.className = 'card card-' + g.id;
     const rec = g.punti === false ? null : mp.get(chiaveRec(g.id, modo, livello, cats), null);
     const vuoto = modo === 'fisico' && g.id === 'legami' ? !poolFis(livello, cats).some(f => f.s && f.s.length)
@@ -144,6 +218,11 @@ function disegnaHome() {
     G.appendChild(b);
   });
   disegnaProfili();
+}
+async function cambiaSezione(id) {
+  $('sezioni').classList.add('carico');
+  try { await impostaSezione(id); } catch (e) { $('sezioni').classList.remove('carico'); alert('Non riesco a caricare questa sezione. Controlla la connessione e riprova.'); return; }
+  $('sezioni').classList.remove('carico'); disegnaHome(); window.scrollTo(0, 0);
 }
 function mostra(id) { if (id !== 'gioco' && $('gioco').classList.contains('schermo-intero')) schermoIntero(false); ['home', 'gioco', 'fine', 'progressi'].forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); }
 
@@ -169,12 +248,11 @@ $('logo').onclick = () => esciMenu();
 
 // ---------- mappa ----------
 const svg = $('mappa');
-let vb = { x: 0, y: 0, w: E.W, h: E.H };
+let vb = { x: 0, y: 0, w: 1000, h: 800 };
 const elem = {};            // Stati: id -> [path, marker?]
 const elemF = {};           // geografia fisica: id -> [elementi...]
 const etich = {};           // id -> <text>
-let gLabel, gMarker, gFMark, gPt;
-svg.setAttribute('viewBox', `0 0 ${E.W} ${E.H}`);
+let gLabel, gMarker, gFMark, gPt, gArmate;
 const crea = (tag, attr, parent, cls) => {
   const e = document.createElementNS(NS, tag);
   Object.entries(attr || {}).forEach(([k, v]) => e.setAttribute(k, v));
@@ -183,12 +261,20 @@ const crea = (tag, attr, parent, cls) => {
   return e;
 };
 
-(function costruisciMappa() {
+function costruisciMappa() {
+  svg.replaceChildren();
+  [elem, elemF, etich].forEach(o => Object.keys(o).forEach(k => delete o[k]));
+  gArmate = null; vb = { x: 0, y: 0, w: E.W, h: E.H };
+  svg.setAttribute('viewBox', `0 0 ${E.W} ${E.H}`); svg.setAttribute('aria-label', SZ.mappa);
+  svg.parentElement.style.setProperty('--rapporto', E.W / E.H);
+  $('zReset').title = SZ.vistaIntera; $('zReset').setAttribute('aria-label', SZ.vistaIntera);
   crea('rect', { width: E.W, height: E.H }, svg, 'mare');
-  crea('image', { href: 'dati/rilievo.webp', width: E.W, height: E.H, preserveAspectRatio: 'none' }, svg, 'rilievo');
-  // ritaglio "solo mare": i mari evidenziati non devono coprire la terraferma, che nella carta fisica è trasparente
-  const defs = crea('defs', {}, svg), clip = crea('clipPath', { id: 'soloMare' }, defs);
-  crea('path', { 'clip-rule': 'evenodd', d: `M0 0H${E.W}V${E.H}H0Z` + Object.values(E.paesi).join('') }, clip);
+  if (F.length) {
+    crea('image', { href: SZ.rilievo, width: E.W, height: E.H, preserveAspectRatio: 'none' }, svg, 'rilievo');
+    // ritaglio "solo mare": i mari evidenziati non devono coprire la terraferma, che nella carta fisica è trasparente
+    const defs = crea('defs', {}, svg), clip = crea('clipPath', { id: 'soloMare' }, defs);
+    crea('path', { 'clip-rule': 'evenodd', d: `M0 0H${E.W}V${E.H}H0Z` + Object.values(E.paesi).join('') }, clip);
+  }
   const gSea = crea('g', {}, svg, 'gsea'), gT = crea('g', {}, svg), gPen = crea('g', {}, svg), gPoly = crea('g', {}, svg), gLines = crea('g', {}, svg);
   gPt = crea('g', {}, svg); gFMark = crea('g', {}, svg); gMarker = crea('g', {}, svg); gLabel = crea('g', {}, svg);
   Object.entries(E.paesi).forEach(([id, d]) => {
@@ -197,6 +283,7 @@ const crea = (tag, attr, parent, cls) => {
   });
   MICRO.forEach(id => {
     const c = E.centri[id]; if (!c) return;
+    if (!elem[id]) { const p = crea('path', { d: '' }, gT, 'terra'); p.dataset.id = id; elem[id] = [p]; }
     const m = crea('circle', { cx: c[0], cy: c[1] }, gMarker, 'marker'); m.dataset.id = id;
     m.style.display = 'none'; elem[id].push(m);
   });
@@ -210,11 +297,12 @@ const crea = (tag, attr, parent, cls) => {
   ordine.forEach(f => {
     const els = [], marca = e => { e.dataset.id = f.id; e.style.display = 'none'; els.push(e); return e; };
     if (f.tipo === 'poly') {
-      marca(crea('path', { d: f.d }, f.cat === 'mari' ? gSea : (f.cat === 'penisole' || f.cat === 'pianure') ? gPen : gPoly, `fis poly cat-${f.cat}`));
-      if (f.small) marca(crea('circle', { cx: f.c[0], cy: f.c[1] }, gFMark, 'fmark'));
+      marca(crea('path', { d: f.d }, (f.cat === 'mari' || f.cat === 'stretti') ? gSea : (f.cat === 'penisole' || f.cat === 'pianure' || f.cat === 'deserti' || f.cat === 'monti') ? gPen : gPoly, `fis poly cat-${f.cat}`));
+      if (f.small) marca(crea('circle', { cx: f.c[0], cy: f.c[1] }, gFMark, 'fmark' + (f.cat === 'laghi' ? ' fmark-lago' : '')));
     } else if (f.tipo === 'line') {
       marca(crea('path', { d: f.d }, gLines, `fis line cat-${f.cat}`));
       marca(crea('path', { d: f.d }, gLines, 'fis hitline'));
+      if (f.cat === 'stretti') marca(crea('circle', { cx: f.c[0], cy: f.c[1] }, gFMark, 'fmark'));
     } else {
       const tri = marca(crea('path', { d: 'M0,-9 L8,6 L-8,6 Z' }, gPt, `fis pt cat-${f.cat}`));
       tri.dataset.x = f.c[0]; tri.dataset.y = f.c[1];
@@ -224,7 +312,7 @@ const crea = (tag, attr, parent, cls) => {
     const t = crea('text', { x: f.c[0], y: f.c[1] }, gLabel, `etichetta cat-${f.cat}`);
     t.dataset.id = f.id; t.textContent = f.nome; t.style.display = 'none'; etich[f.id] = t;
   });
-})();
+}
 
 function impostaPool(ids, modoMappa) {
   svg.dataset.modo = modoMappa || modoAttivo;
@@ -243,41 +331,70 @@ function impostaPool(ids, modoMappa) {
 }
 function statoClasse(id, cls, on = true) { [...(elem[id] || []), ...(elemF[id] || [])].forEach(e => e.classList.toggle(cls, on)); }
 function pulisciStati() {
-  [...Object.values(elem), ...Object.values(elemF)].forEach(l => l.forEach(e => e.classList.remove('evidenzia', 'sel', 'giusto', 'sbagliato', 'manca', 'ue')));
+  [...Object.values(elem), ...Object.values(elemF)].forEach(l => l.forEach(e => e.classList.remove('evidenzia', 'sel', 'giusto', 'sbagliato', 'manca', 'ue', ...CLS_CONT)));
 }
 
 // zoom e spostamento
 function applicaVista() {
-  vb.w = Math.min(E.W, Math.max(E.W / 14, vb.w)); vb.h = vb.w * E.H / E.W;
+  vb.w = Math.min(E.W, Math.max(E.W / SZ.zmax, vb.w)); vb.h = vb.w * E.H / E.W;
   vb.x = Math.min(E.W - vb.w, Math.max(0, vb.x)); vb.y = Math.min(E.H - vb.h, Math.max(0, vb.y));
   svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
   const k = vb.w / E.W;
-  const kk = Math.max(k, 0.12);
-  gMarker.querySelectorAll('circle').forEach(c => c.setAttribute('r', 6 * kk));
+  const kk = Math.max(k, SZ.mk[1]);
+  gMarker.querySelectorAll('circle').forEach(c => c.setAttribute('r', SZ.mk[0] * kk));
   gFMark.querySelectorAll('circle').forEach(c => c.setAttribute('r', 10 * kk));
   gPt.querySelectorAll('path').forEach(t => t.setAttribute('transform', `translate(${t.dataset.x} ${t.dataset.y}) scale(${kk})`));
+  if (gArmate) gArmate.querySelectorAll('g').forEach(g => g.setAttribute('transform', `translate(${g.dataset.x} ${g.dataset.y}) scale(${Math.max(k, 0.25)})`));
   const fs = 12 * k;
-  Object.values(etich).forEach(t => {
+  if (SZ.etAdatt) return aggiornaEtichetteMondo(k, fs);
+  Object.entries(etich).forEach(([id, t]) => {
     t.style.fontSize = fs + 'px'; t.style.strokeWidth = (3 * k) + 'px';
     if (t.dataset.micro) t.style.display = (etichetteOn && k < 0.4 && S && S.pool.includes(t.dataset.id)) ? '' : 'none';
+  });
+}
+// Mondo: un nome compare se c'è posto per leggerlo e non copre un nome più importante (gli elementi più importanti hanno la precedenza)
+function aggiornaEtichetteMondo(k, fs) {
+  const candidate = [];
+  Object.entries(etich).forEach(([id, t]) => {
+    t.style.fontSize = fs + 'px'; t.style.strokeWidth = (3 * k) + 'px';
+    if (!etichetteOn || !S || !S.pool.includes(id)) { t.style.display = 'none'; return; }
+    if (!t.dataset.bw) { const e = (elem[id] || elemF[id])[0], b = e.getBBox(); t.dataset.bw = e.classList.contains('pt') ? 25 : Math.max(b.width, b.height * 1.6); }
+    const stato = !!per[id], largo = t.textContent.length * 0.56 * fs;
+    if (stato && t.dataset.micro) { if (k >= 0.12) { t.style.display = 'none'; return; } }
+    else if (stato && largo > t.dataset.bw * 1.25) { t.style.display = 'none'; return; }
+    candidate.push([id, t, stato ? 0 : fis[id].liv, +t.dataset.bw, largo]);
+  });
+  candidate.sort((a, b) => a[2] - b[2] || b[3] - a[3]);
+  const occupato = [], h = fs * 1.15;
+  candidate.forEach(([id, t, , , largo]) => {
+    const x = +t.getAttribute('x'), y = +t.getAttribute('y'), r = [x - largo / 2, y - h / 2, x + largo / 2, y + h / 2];
+    const libero = !occupato.some(o => r[0] < o[2] && r[2] > o[0] && r[1] < o[3] && r[3] > o[1]);
+    t.style.display = libero ? '' : 'none';
+    if (libero) occupato.push(r);
   });
 }
 const aSvg = (cx, cy) => { const pt = svg.createSVGPoint(); pt.x = cx; pt.y = cy; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
 function zoomIn(f, cx, cy) {
   let px, py;
   if (cx === undefined) { px = vb.x + vb.w / 2; py = vb.y + vb.h / 2; } else { const q = aSvg(cx, cy); px = q.x; py = q.y; }
-  const nw = Math.min(E.W, Math.max(E.W / 14, vb.w * f)), r = nw / vb.w;
+  const nw = Math.min(E.W, Math.max(E.W / SZ.zmax, vb.w * f)), r = nw / vb.w;
   vb.x = px - (px - vb.x) * r; vb.y = py - (py - vb.y) * r; vb.w = nw; applicaVista();
 }
 function vistaIntera() { vb = { x: 0, y: 0, w: E.W, h: E.H }; applicaVista(); }
 function vaiA(id) {
   if (!per[id]) { // elemento fisico: inquadra il suo riquadro con un po' di margine
     const b = elemF[id][0].getBBox(), cx = b.x + b.width / 2, cy = b.y + b.height / 2;
-    const w = Math.max(420, b.width * 1.6, b.height * 1.6 * E.W / E.H);
+    const w = Math.max(SZ.minW, b.width * 1.6, b.height * 1.6 * E.W / E.H);
     if (w > E.W * 0.75) return vistaIntera();
     vb = { x: cx - w / 2, y: cy - w * E.H / E.W / 2, w, h: w * E.H / E.W }; return applicaVista();
   }
   const c = E.centri[id], b = elem[id][0].getBBox();
+  if (SZ.id === 'mondo') { // inquadra lo Stato con un po' di margine; i più grandi si vedono sulla mappa intera
+    const lato = Math.max(b.width, b.height * E.W / E.H), w = Math.max(90, lato * 3.4);
+    if (!c || w > E.W * 0.55) return vistaIntera();
+    const cx = lato < 8 ? c[0] : b.x + b.width / 2, cy = lato < 8 ? c[1] : b.y + b.height / 2;
+    vb = { x: cx - w / 2, y: cy - w * E.H / E.W / 2, w, h: w * E.H / E.W }; return applicaVista();
+  }
   if (!c || Math.max(b.width, b.height) > 45) return vistaIntera();
   const w = 240; vb = { x: c[0] - w / 2, y: c[1] - w * E.H / E.W / 2, w, h: w * E.H / E.W }; applicaVista();
 }
@@ -309,10 +426,10 @@ window.addEventListener('pointermove', e => {
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (ptr.size === 1) {
     trascinato += Math.abs(dx) + Math.abs(dy);
-    if (trascinato > 8) { mosso = true; const r = svg.getBoundingClientRect(); const s = Math.min(r.width / vb.w, r.height / vb.h); vb.x -= dx / s; vb.y -= dy / s; applicaVista(); }
+    if (trascinato > 16) { mosso = true; const r = svg.getBoundingClientRect(); const s = Math.min(r.width / vb.w, r.height / vb.h); vb.x -= dx / s; vb.y -= dy / s; applicaVista(); }
   } else if (ptr.size === 2 && d0 > 0) {
     const [a, b] = [...ptr.values()], q = aSvg((a.x + b.x) / 2, (a.y + b.y) / 2);
-    const nw = Math.min(E.W, Math.max(E.W / 14, w0 * d0 / dist())), r = nw / vb.w;
+    const nw = Math.min(E.W, Math.max(E.W / SZ.zmax, w0 * d0 / dist())), r = nw / vb.w;
     vb.x = q.x - (q.x - vb.x) * r; vb.y = q.y - (q.y - vb.y) * r; vb.w = nw; applicaVista();
   }
 });
@@ -332,18 +449,21 @@ function avvia(gioco, soloIds) {
   clearInterval(timer);
   modoAttivo = modo;
   const poolIds = soloIds
-    ? (modo === 'stati' ? pool(3) : poolFis(3, CATS.map(c => c.id))).map(p => p.id)
+    ? (modo === 'stati' ? pool(3) : poolFis(3, catsSez().map(c => c.id))).map(p => p.id)
     : poolModo(modo, livello, cats).map(p => p.id);
   S = { gioco, modo, cats: cats.slice(), liv: livello, pool: poolIds, i: 0, punti: 0, errori: [], t0: Date.now(), blocca: false, tent: 0 };
   vistaIntera(); sulClic = null; etichetteOn = false;
   svg.parentElement.classList.remove('interattivo');
   mostra('gioco');
+  if (gioco === 'risiko') return avviaRisiko();
   if (gioco === 'legami') return avviaLegami(soloIds);
   if (gioco === 'elementi') return avviaElementi(soloIds);
   impostaPool(poolIds); pulisciStati();
   if (gioco === 'studio') return avviaStudio();
   if (gioco === 'coloraUE') return avviaColoraUE();
+  if (gioco === 'coloraCont') return avviaColoraCont();
   let coda = soloIds ? mescola(soloIds) : mescola(poolIds);
+  if (gioco === 'continente') coda = coda.filter(id => !per[id].amb);   // gli Stati a cavallo tra due continenti non si chiedono
   if (!soloIds && quantita) coda = coda.slice(0, quantita);
   S.coda = coda;
   timer = setInterval(aggiornaStat, 1000);
@@ -365,7 +485,7 @@ function prossima() {
   if (g === 'trova') {
     vistaIntera(); svg.parentElement.classList.add('interattivo');
     const cf = fis[id] && cat(fis[id].cat);
-    $('domanda').innerHTML = `Clicca su: <b>${nome(id)}</b>${cf ? ` <span class="tipo">(${cf.sing})</span>` : ''}<small>Hai due tentativi.${cf && cf.id === 'mari' ? ' I mari si cliccano sull\'acqua.' : ''}</small>`;
+    $('domanda').innerHTML = `Clicca su: <b>${nome(id)}</b>${cf ? ` <span class="tipo">(${cf.sing})</span>` : ''}<small>Hai due tentativi.${cf && cf.id === 'mari' ? ' I mari si cliccano sull\'acqua.' : cf && cf.id === 'stretti' ? ' Gli stretti sono piccoli: puoi ingrandire la mappa.' : ''}</small>`;
     sulClic = cl => rispondiTrova(id, cl);
     return;
   }
@@ -388,6 +508,11 @@ function prossima() {
     const chiave = g === 'indovina' ? 'nome' : 'cap';
     $('domanda').innerHTML = g === 'indovina' ? 'Quale Stato è evidenziato?' : `<b>${nome(id)}</b>: qual è la capitale?`;
     scegli(opz.map(o => ({ testo: o[chiave], ok: o.id === id })), ok => esito(id, ok, infoPaese(per[id]), g === 'capitali' ? id + '|cap' : id));
+  } else if (g === 'continente') {
+    const p = per[id];
+    $('domanda').innerHTML = `<b>${p.nome}</b>: in quale continente si trova?`;
+    $('pannello').innerHTML = '';
+    scegli(SZ.aree.map(c => ({ testo: c, ok: c === p.cont })), ok => esito(id, ok, infoPaese(p) + (p.nota ? ` ${p.nota}` : ''), id + '|cont'));
   } else if (g === 'ue') {
     const p = per[id];
     $('domanda').innerHTML = `<b>${p.nome}</b> fa parte dell'Unione europea?`;
@@ -409,6 +534,7 @@ function scegli(opzioni, fine) {
   $('pannello').appendChild(box);
 }
 function infoPaese(p) {
+  if (SZ.id === 'mondo') return `<b>${p.nome}</b> · capitale ${p.cap} · ${p.cont}.`;
   return `<b>${p.nome}</b> · capitale ${p.cap} · ${p.ue ? 'membro dell\'UE' : 'non fa parte dell\'UE'}.`;
 }
 function infoElemento(p) {
@@ -454,6 +580,16 @@ function showMsg(html, cls) { $('pannello').innerHTML = `<div class="msg ${cls |
 
 // ---------- carta d'identità ----------
 function cartaStato(p) {
+  if (SZ.id === 'mondo') {
+    const r = [['🏛️', 'Capitale', p.cap], ['🌍', 'Continente', p.cont], ['📍', 'Posizione', p.pos], ['🧭', 'Confina con', p.conf.length ? p.conf.join(', ') : 'Nessuno Stato (isola)'],
+      ['📐', 'Superficie', fmtSup(p.sup)], ['👥', 'Abitanti', fmtAb(p.ab)], ['💶', 'Moneta', p.mon], ['🗣️', 'Lingua', p.lin], ['⚖️', 'Governo', p.gov]];
+    return `<div class="carta">
+    <div class="carta-testa"><h3>${p.nome}</h3><span class="badge no">${p.cont}</span></div>
+    <dl class="carta-griglia">${r.map(([i, l, v]) => `<div><dt>${i} ${l}</dt><dd>${v}</dd></div>`).join('')}</dl>
+    ${p.nota ? `<p class="nota-carta">ℹ️ ${p.nota}</p>` : ''}
+    <p class="chicca">💡 ${p.chicca}</p>
+  </div>`;
+  }
   const righe = [
     ['🏛️', 'Capitale', p.cap], ['📍', 'Posizione', p.pos], ['🧭', 'Confina con', p.conf.length ? p.conf.join(', ') : 'Nessuno Stato (isola)'],
     ['📐', 'Superficie', fmtSup(p.sup)], ['👥', 'Abitanti', fmtAb(p.ab)], ['💶', 'Moneta', p.mon],
@@ -475,23 +611,25 @@ function schedaElemento(p) {
 }
 
 // domande sulla carta d'identità degli Stati
-const AREE = ['Europa settentrionale', 'Europa occidentale', 'Europa centrale', 'Europa orientale', 'Europa meridionale', 'Balcani'];
 function domandaIdentita(id) {
   const p = per[id], altri = P.filter(x => S.pool.includes(x.id) && x.id !== id);
-  const tipi = ['moneta', 'lingua', 'area', 'abitanti', 'superficie'];
+  const tipi = ['moneta', 'lingua', 'area', 'abitanti', 'superficie'].filter(x => !(x === 'area' && p.amb));
   const t = tipi[Math.random() * tipi.length | 0];
   const distinti = (valore, lista, n = 3) => mescola([...new Set(lista.filter(v => v !== valore))]).slice(0, n);
   if (t === 'moneta' || t === 'lingua') {
     const val = t === 'moneta' ? monetaBase(p) : p.lin;
     const tutti = P.map(x => (t === 'moneta' ? monetaBase(x) : x.lin));
-    const opz = mescola([val, ...distinti(val, tutti)]);
+    // per le lingue si scartano le risposte che contengono la stessa lingua (es. «Inglese» e «Inglese e francese»)
+    const lingue = v => v.toLowerCase().split(/,| e /).map(x => x.trim());
+    const diverse = t === 'moneta' ? tutti : tutti.filter(v => !lingue(v).some(l => lingue(val).includes(l)));
+    const opz = mescola([val, ...distinti(val, diverse)]);
     statoClasse(id, 'evidenzia'); vaiA(id);
     $('domanda').innerHTML = t === 'moneta' ? `<b>${p.nome}</b>: qual è la moneta?` : `<b>${p.nome}</b>: qual è la lingua ufficiale?`;
     scegli(opz.map(o => ({ testo: o, ok: o === val })), ok => esito(id, ok, `<b>${p.nome}</b>: ${t === 'moneta' ? 'moneta' : 'lingua'} ${val.toLowerCase()}.`, id + '|' + t));
   } else if (t === 'area') {
-    const opz = mescola([p.area, ...mescola(AREE.filter(a => a !== p.area)).slice(0, 3)]);
+    const opz = mescola([p.area, ...mescola(SZ.aree.filter(a => a !== p.area)).slice(0, 3)]);
     statoClasse(id, 'evidenzia'); vaiA(id);
-    $('domanda').innerHTML = `<b>${p.nome}</b>: in quale area d'Europa si trova?`;
+    $('domanda').innerHTML = SZ.areaDom(p.nome);
     scegli(opz.map(o => ({ testo: o, ok: o === p.area })), ok => esito(id, ok, `<b>${p.nome}</b> si trova in: ${p.area.toLowerCase()}. ${p.pos}.`, id + '|area'));
   } else { // confronto numerico
     const campo = t === 'abitanti' ? 'ab' : 'sup';
@@ -512,13 +650,22 @@ function avviaStudio() {
   $('domanda').innerHTML = `Esplora la mappa<small>Tocca ${fisico ? 'un elemento' : 'uno Stato'}. Trascina per spostarti, usa + e − (o pizzica) per ingrandire.</small>`;
   svg.parentElement.classList.add('interattivo');
   $('pannello').innerHTML = `<div class="opzioni"><label><input type="checkbox" id="optNomi" checked> Mostra i nomi</label>
-    ${fisico ? '' : '<label><input type="checkbox" id="optUE" checked> Colora gli Stati dell\'UE</label>'}</div>
+    ${fisico ? '' : SZ.id === 'mondo' ? '<label><input type="checkbox" id="optCont" checked> Colora per continente</label>' : '<label><input type="checkbox" id="optUE" checked> Colora gli Stati dell\'UE</label>'}</div>
+    ${SZ.id === 'mondo' ? '<div class="legenda" id="legenda"></div>' : ''}
     <div id="scheda"><div class="carta vuota">Tocca ${fisico ? 'un elemento' : 'uno Stato'} per aprire la sua scheda.</div></div>`;
   const nomi = () => { etichetteOn = $('optNomi').checked;
+    if (SZ.etAdatt) { Object.entries(etich).forEach(([id, t]) => { t.dataset.micro = MICRO.includes(id) ? '1' : ''; }); return applicaVista(); }
     Object.entries(etich).forEach(([id, t]) => { const micro = MICRO.includes(id); t.dataset.micro = micro ? '1' : '';
       t.style.display = etichetteOn && S.pool.includes(id) && !micro ? '' : 'none'; }); applicaVista(); };
   $('optNomi').onchange = nomi; nomi();
-  if (!fisico) {
+  if (!fisico && SZ.id === 'mondo') {
+    const col = () => {
+      const on = $('optCont').checked;
+      S.pool.forEach(id => SZ.aree.forEach((c, i) => statoClasse(id, 'cont-' + i, on && per[id].cont === c)));
+      $('legenda').innerHTML = on ? SZ.aree.map((c, i) => `<span><i class="cont-${i}"></i>${c}</span>`).join('') : '';
+    };
+    $('optCont').onchange = col; col();
+  } else if (!fisico) {
     const ue = () => S.pool.forEach(id => statoClasse(id, 'ue', $('optUE').checked && per[id].ue));
     $('optUE').onchange = ue; ue();
   }
@@ -528,29 +675,201 @@ function avviaStudio() {
   };
 }
 
-// ---------- componi l'UE ----------
-function avviaColoraUE() {
-  const eu = S.pool.filter(id => per[id].ue), sel = new Set();
+// ---------- componi l'UE / componi il continente ----------
+// membri: Stati da selezionare; tolleranti: Stati ambigui che non danno né punti né penalità; chiave: voce per le statistiche
+function giocoSelezione({ membri, tollerati, titolo, sotto, chiave }) {
+  const sel = new Set();
   S.stat = () => `Selezionati ${sel.size}`;
   S.coda = null; S.t0 = Date.now(); timer = setInterval(aggiornaStat, 1000); aggiornaStat();
-  $('domanda').innerHTML = `Seleziona tutti gli Stati dell'Unione europea<small>In questo livello ce ne sono ${eu.length}. Tocca di nuovo per togliere la selezione, poi premi Verifica.</small>`;
+  $('domanda').innerHTML = `${titolo}<small>${sotto}</small>`;
   svg.parentElement.classList.add('interattivo');
   $('pannello').innerHTML = '<button class="primario" id="verifica">Verifica</button>';
   sulClic = id => { if (S.blocca) return; sel.has(id) ? sel.delete(id) : sel.add(id); statoClasse(id, 'sel', sel.has(id)); aggiornaStat(); };
   $('verifica').onclick = () => {
     S.blocca = true; clearInterval(timer);
-    let giusti = 0, sbagliati = 0; S.errori = [];
+    let giusti = 0, sbagliati = 0, dimenticati = 0; S.errori = [];
     S.pool.forEach(id => {
-      const e = per[id].ue, s = sel.has(id); statoClasse(id, 'sel', false);
-      if (e && s) { giusti++; statoClasse(id, 'giusto'); registra(id + '|ue', true); }
-      else if (!e && s) { sbagliati++; S.errori.push(id + '|ue'); statoClasse(id, 'sbagliato'); registra(id + '|ue', false); }
-      else if (e && !s) { S.errori.push(id + '|ue'); statoClasse(id, 'manca'); registra(id + '|ue', false); }
+      const e = membri.has(id), s = sel.has(id); statoClasse(id, 'sel', false);
+      if (tollerati.has(id)) { if (s) statoClasse(id, 'giusto'); return; }
+      if (e && s) { giusti++; statoClasse(id, 'giusto'); registra(id + chiave, true); }
+      else if (!e && s) { sbagliati++; S.errori.push(id + chiave); statoClasse(id, 'sbagliato'); registra(id + chiave, false); }
+      else if (e && !s) { dimenticati++; S.errori.push(id + chiave); statoClasse(id, 'manca'); registra(id + chiave, false); }
     });
-    S.punti = Math.max(0, giusti - sbagliati); S.totale = eu.length;
-    $('pannello').innerHTML = `<div class="msg">Verde: giusti (${giusti}) · Rosso: scelti per errore (${sbagliati}) · Arancione: UE che avevi dimenticato (${eu.length - giusti}).</div>
+    S.punti = Math.max(0, giusti - sbagliati); S.totale = membri.size;
+    $('pannello').innerHTML = `<div class="msg">Verde: giusti (${giusti}) · Rosso: scelti per errore (${sbagliati}) · Arancione: ${SZ.id === 'mondo' ? 'Stati del continente' : 'UE'} che avevi dimenticato (${dimenticati}).${tollerati.size ? ' Gli Stati a cavallo tra due continenti non cambiano il punteggio.' : ''}</div>
       <button class="primario" id="vaiFine">Vedi il risultato →</button>`;
     $('vaiFine').onclick = finisci;
   };
+}
+function avviaColoraUE() {
+  const eu = S.pool.filter(id => per[id].ue);
+  giocoSelezione({ membri: new Set(eu), tollerati: new Set(), titolo: 'Seleziona tutti gli Stati dell\'Unione europea',
+    sotto: `In questo livello ce ne sono ${eu.length}. Tocca di nuovo per togliere la selezione, poi premi Verifica.`, chiave: '|ue' });
+}
+function avviaColoraCont() {
+  const certi = c => S.pool.filter(id => per[id].cont === c && !per[id].amb);
+  const possibili = SZ.aree.filter(c => certi(c).length >= 4);
+  const cont = possibili[Math.random() * possibili.length | 0], membri = certi(cont);
+  S.cont = cont;
+  giocoSelezione({ membri: new Set(membri), tollerati: new Set(S.pool.filter(id => per[id].amb && per[id].alt.includes(cont))),
+    titolo: `Seleziona tutti gli Stati di questo continente: <b>${cont}</b>`,
+    sotto: `In questo livello ce ne sono ${membri.length}. Tocca di nuovo per togliere la selezione, poi premi Verifica.`, chiave: '|cont' });
+}
+
+
+// ---------- Costruisci il tuo Stato (Risiko didattico) ----------
+// Idea: per essere uno Stato servono territorio, popolo e governo (+ riconoscimento).
+// Conquistare è solo un pezzo: se prendi più territorio di quanto riesci a governare, si stacca.
+const RK = {
+  turni: 15, pa: 3,
+  popolo: [
+    ['cittadinanza', 'Cittadinanza', 'Si decide chi fa parte del popolo: diritti e doveri uguali per tutti.'],
+    ['lingua', 'Lingua e scuola comune', 'Una lingua ufficiale e scuole per tutti permettono di capirsi e sentirsi comunità.'],
+    ['simboli', 'Storia e simboli', 'Bandiera, inno e feste nazionali: ci si riconosce in una storia condivisa.'],
+    ['anagrafe', 'Censimento e anagrafe', 'Sapere chi vive stabilmente sul territorio: lo Stato ha una popolazione permanente.'],
+  ],
+  governo: [
+    ['costituzione', 'Costituzione', 'Le regole fondamentali: chi decide e quali sono i diritti.'],
+    ['parlamento', 'Parlamento e leggi', 'Chi fa le leggi valide su tutto il territorio. Serve la Costituzione.'],
+    ['tribunali', 'Tribunali', 'Chi giudica le controversie e fa rispettare le leggi. Serve la Costituzione.'],
+    ['esercito', 'Esercito e polizia', 'Solo lo Stato può usare la forza legittima. Ogni turno +2 armate in più nella capitale.'],
+    ['tasse', 'Tasse e moneta', 'Con le tasse lo Stato finanzia i servizi. Ogni turno hai 1 punto azione in più.'],
+  ],
+  req: { parlamento: 'costituzione', tribunali: 'costituzione' },
+};
+function avviaRisiko() {
+  const lista = pool(Math.max(2, livello)).filter(p => !MICRO.includes(p.id));
+  const ids = new Set(lista.map(p => p.id)), idPerNome = Object.fromEntries(P.map(p => [p.nome, p.id]));
+  const adj = {}; lista.forEach(p => { adj[p.id] = p.conf.map(n => idPerNome[n]).filter(x => x && ids.has(x)); });
+  lista.forEach(p => adj[p.id].forEach(q => { if (!adj[q].includes(p.id)) adj[q].push(p.id); }));
+  const giocabili = lista.filter(p => adj[p.id].length).map(p => p.id);   // fuori le isole senza confini di terra
+  const arm = {};
+  giocabili.forEach(id => { const p = per[id]; arm[id] = Math.min(5, 2 + (p.ab > 2e7 ? 2 : p.ab > 8e6 ? 1 : 0) + (p.sup > 3e5 ? 1 : 0)); });
+  impostaPool(giocabili); pulisciStati();
+  Object.keys(etich).forEach(id => { etich[id].style.display = giocabili.includes(id) ? '' : 'none'; });
+  if (gArmate) gArmate.remove();
+  gArmate = crea('g', {}, svg); gArmate.setAttribute('pointer-events', 'none');
+  const badge = {};
+  giocabili.forEach(id => {
+    const c = E.centri[id]; const g = crea('g', {}, gArmate, 'armate'); g.dataset.x = c[0]; g.dataset.y = c[1];
+    crea('circle', { cx: 0, cy: -15, r: 9 }, g, 'armate-c'); const t = crea('text', { x: 0, y: -11.5 }, g, 'armate-t'); badge[id] = t;
+  });
+  const R = { giocabili, adj, arm, mio: new Set(), cap: null, sel: null, t: 1, pa: RK.pa, fatto: new Set(), confini: false, msg: '', log: [], fine: false };
+  S.stat = () => R.cap ? `Turno ${R.t}/${RK.turni} · Punti azione ${R.pa}` : 'Scegli da dove partire';
+  S.coda = null; S.blocca = false; svg.parentElement.classList.add('interattivo'); sulClic = null;
+  const nome_ = id => per[id].nome;
+  const compMax = () => {   // numero di territori collegati tra loro (il blocco più grande)
+    const vis = new Set(); let max = 0;
+    R.mio.forEach(s => { if (vis.has(s)) return; let n = 0; const st = [s]; vis.add(s);
+      while (st.length) { const x = st.pop(); n++; adj[x].forEach(y => { if (R.mio.has(y) && !vis.has(y)) { vis.add(y); st.push(y); } }); }
+      max = Math.max(max, n); });
+    return max;
+  };
+  const nPop = () => RK.popolo.filter(x => R.fatto.has(x[0])).length, nGov = () => RK.governo.filter(x => R.fatto.has(x[0])).length;
+  const governabili = () => 2 + nPop() + nGov();
+  const disegna = () => {
+    giocabili.forEach(id => {
+      statoClasse(id, 'mio', R.mio.has(id)); statoClasse(id, 'capitale', id === R.cap); statoClasse(id, 'scelto', id === R.sel);
+      statoClasse(id, 'bersaglio', !!R.sel && !R.mio.has(id) && adj[R.sel].includes(id));
+      badge[id].textContent = arm[id];
+      badge[id].parentNode.classList.toggle('mia', R.mio.has(id));
+    });
+    aggiornaStat(); $('barraProg').style.width = `${100 * (R.t - 1) / RK.turni}%`;
+    if (!R.cap) return;
+    const barra = (ico, tit, n, tot, sub) => `<div class="pilastro ${n >= tot ? 'ok' : ''}"><b>${ico} ${tit}</b><div class="pil-b"><i style="width:${100 * n / tot}%"></i></div><small>${sub}</small></div>`;
+    const terr = compMax();
+    const instab = R.mio.size > governabili();
+    const btn = (key, tit, desc) => {
+      const fatto = R.fatto.has(key), manca = RK.req[key] && !R.fatto.has(RK.req[key]);
+      return `<button class="az ${fatto ? 'fatto' : ''}" data-k="${key}" ${fatto || manca || R.pa < 1 ? 'disabled' : ''}><b>${fatto ? '✅' : '▫️'} ${tit}</b><small>${manca ? 'Prima serve: ' + RK.governo.find(x => x[0] === RK.req[key])[1] : desc}</small></button>`;
+    };
+    const pronto = R.confini && nPop() === RK.popolo.length && nGov() === RK.governo.length;
+    $('pannello').innerHTML = `
+      <div class="pilastri">
+        ${barra('🗺️', 'Territorio', Math.min(terr, 5), 5, R.confini ? 'Confini fissati ✅' : `${terr}/5 territori collegati`)}
+        ${barra('👥', 'Popolo', nPop(), RK.popolo.length, `${nPop()}/${RK.popolo.length} elementi`)}
+        ${barra('🏛️', 'Governo', nGov(), RK.governo.length, `${nGov()}/${RK.governo.length} istituzioni`)}
+      </div>
+      <p class="rk-stab ${instab ? 'ko' : ''}">Territori posseduti: <b>${R.mio.size}</b> · Quanti riesci a governare: <b>${governabili()}</b> ${instab ? '⚠️ Troppi! A fine turno uno si stacca.' : ''}</p>
+      <div class="msg ${R.msg.cls || ''}">${R.msg.t || ''}</div>
+      <p class="rk-tit">⚔️ Mappa: tocca un tuo territorio (blu) e poi uno confinante (arancione) per attaccare. Ogni clic è un lancio di dadi.</p>
+      <div class="azioni-riga">
+        <button class="secondario" id="rkRinforza" ${R.sel && R.pa >= 1 ? '' : 'disabled'}>➕ Rinforza (+3 armate, 1 PA)</button>
+        <button class="secondario" id="rkConfini" ${terr >= 5 && !R.confini && R.pa >= 1 ? '' : 'disabled'}>📍 Fissa i confini (1 PA)</button>
+      </div>
+      <p class="rk-tit">👥 Popolo</p><div class="az-griglia">${RK.popolo.map(x => btn(...x)).join('')}</div>
+      <p class="rk-tit">🏛️ Governo</p><div class="az-griglia">${RK.governo.map(x => btn(...x)).join('')}</div>
+      <div class="azioni-riga">
+        <button class="primario" id="rkRico" ${pronto && R.pa >= 1 ? '' : 'disabled'}>🌍 Chiedi il riconoscimento (1 PA)</button>
+        <button class="secondario" id="rkFine">Fine turno →</button>
+      </div>`;
+    $('pannello').querySelectorAll('.az').forEach(b => b.onclick = () => { R.pa--; R.fatto.add(b.dataset.k); const x = [...RK.popolo, ...RK.governo].find(y => y[0] === b.dataset.k); msg(`<b>${x[1]}.</b> ${x[2]}`, 'ok'); });
+    $('rkRinforza').onclick = () => { R.pa--; arm[R.sel] += 3; msg(`+3 armate in ${nome_(R.sel)}.`); };
+    $('rkConfini').onclick = () => { R.pa--; R.confini = true; msg('<b>Confini fissati.</b> Un territorio ha confini definiti: dentro vale il tuo governo, fuori quello degli altri.', 'ok'); };
+    $('rkRico').onclick = () => { R.pa--; vittoria(); };
+    $('rkFine').onclick = fineTurno;
+  };
+  const msg = (t, cls) => { R.msg = { t, cls }; disegna(); };
+  const dado = () => 1 + (Math.random() * 6 | 0);
+  const attacca = (da, a) => {
+    const na = Math.min(3, arm[da] - 1), nd = Math.min(2, arm[a]);
+    const A = Array.from({ length: na }, dado).sort((x, y) => y - x), D = Array.from({ length: nd }, dado).sort((x, y) => y - x);
+    let pa = 0, pd = 0; for (let i = 0; i < Math.min(na, nd); i++) { if (A[i] > D[i]) pd++; else pa++; }
+    arm[da] -= pa; arm[a] -= pd;
+    let t = `🎲 ${nome_(da)} ${A.join(' ')} contro ${nome_(a)} ${D.join(' ')}: `;
+    if (arm[a] <= 0) {
+      const mv = Math.max(na, Math.min(3, arm[da] - 1)); arm[da] -= mv; arm[a] = mv; R.mio.add(a);
+      t += `<b>conquistato ${nome_(a)}!</b> ${R.mio.size > governabili() ? 'Attenzione: ora hai più territori di quelli che riesci a governare.' : ''}`;
+      return msg(t, 'ok');
+    }
+    msg(t + `perdi ${pa}, loro perdono ${pd}.`);
+  };
+  sulClic = id => {
+    if (R.fine) return;
+    if (!R.cap) {
+      R.cap = id; R.mio.add(id); arm[id] = 4; R.sel = id;
+      $('domanda').innerHTML = `Costruisci il tuo Stato<small>Tre pilastri: <b>territorio</b>, <b>popolo</b>, <b>governo</b>. Poi gli altri Stati devono riconoscerti. Hai ${RK.turni} turni.</small>`;
+      return msg(`Sei partito da <b>${nome_(id)}</b>: è la tua capitale e non si staccherà mai. Per cominciare puoi attaccare un vicino, ma ricorda che conquistare non basta per essere uno Stato.`);
+    }
+    if (R.mio.has(id)) { R.sel = id; return msg(`Selezionato: ${nome_(id)} (${arm[id]} armate).`); }
+    if (!R.sel) return msg('Prima tocca un tuo territorio blu.', 'ko');
+    if (!adj[R.sel].includes(id)) return msg(`${nome_(id)} non confina con ${nome_(R.sel)}: si attacca solo dai confini.`, 'ko');
+    if (arm[R.sel] < 2) return msg('Servono almeno 2 armate per attaccare: rinforza!', 'ko');
+    attacca(R.sel, id);
+  };
+  const fineTurno = () => {
+    let t = '';
+    arm[R.cap] += 1 + (R.fatto.has('esercito') ? 2 : 0);
+    if (R.mio.size > governabili()) {
+      const c = [...R.mio].filter(x => x !== R.cap).sort((a, b) => arm[a] - arm[b])[0];
+      if (c) { R.mio.delete(c); arm[c] = 2; if (R.sel === c) R.sel = R.cap; t = `<b>${nome_(c)} si è staccato!</b> Avevi più territorio di quanto riuscissi a governare: senza popolo che si riconosce in te e senza istituzioni, la forza non basta a tenerlo.`; }
+    }
+    if (R.confini && compMax() < 5) { R.confini = false; t += ' I confini non sono più validi: il territorio è cambiato.'; }
+    R.t++;
+    if (R.t > RK.turni) return sconfitta();
+    R.pa = RK.pa + (R.fatto.has('tasse') ? 1 : 0);
+    msg(t || `Turno ${R.t}.`, t ? 'ko' : '');
+  };
+  const fineSchermata = (vinto, titolo, corpo) => {
+    R.fine = true; clearInterval(timer);
+    const rec = mp.get('rec_risiko', null), turni = R.t;
+    if (vinto && (rec === null || turni < rec)) mp.set('rec_risiko', turni);
+    $('fine').innerHTML = `<div class="card-fine"><h1>${vinto ? '🏆' : '🌫️'} ${titolo}</h1>${corpo}
+      <div class="lista"><b>Che cos'è uno Stato?</b><ul>
+        <li>🗺️ <b>Territorio</b> con confini definiti</li><li>👥 <b>Popolo</b>: una popolazione stabile che si riconosce in una comunità</li>
+        <li>🏛️ <b>Governo</b> sovrano, con leggi, tribunali e forza legittima</li><li>🌍 <b>Riconoscimento</b>: la capacità di avere relazioni con gli altri Stati</li></ul>
+        <small>Sono i criteri della Convenzione di Montevideo (1933), usati ancora oggi nel diritto internazionale.</small></div>
+      <div class="azioni"><button class="primario" id="ancora">Rigioca</button><button class="secondario" id="menu">Menu</button></div></div>`;
+    mostra('fine'); $('ancora').onclick = () => avvia('risiko'); $('menu').onclick = esciMenu;
+  };
+  const vittoria = () => fineSchermata(true, 'Sei uno Stato!', `<p>In <b>${R.t}</b> turni hai riunito territorio (${R.mio.size} territori), popolo e governo, e ti hanno riconosciuto. ${R.mio.size < 6 ? 'Nota: ti sono bastati pochi territori. Grande non vuol dire più Stato: lo dimostrano Lussemburgo, Malta o San Marino.' : ''}</p>`);
+  const sconfitta = () => {
+    const m = []; if (!R.confini) m.push('confini non fissati'); if (nPop() < 4) m.push('popolo incompleto'); if (nGov() < 5) m.push('governo incompleto');
+    fineSchermata(false, 'Tempo scaduto', `<p>Non sei riuscito a diventare uno Stato: ${m.join(', ') || 'manca il riconoscimento'}. Uno Stato non nasce solo con la forza: servono tutti gli elementi insieme.</p>`);
+  };
+  $('domanda').innerHTML = 'Costruisci il tuo Stato<small>Tocca un territorio per iniziare da lì: sarà la tua capitale.</small>';
+  $('pannello').innerHTML = '<div class="msg">Ogni territorio ha un numero di armate (la difesa). I più grandi e popolosi sono più difficili da conquistare.</div>';
+  aggiornaStat(); $('barraProg').style.width = '0%'; applicaVista();
 }
 
 // ---------- stati collegati (elementi fisici ↔ Stati) ----------
@@ -670,19 +989,19 @@ function finisci() {
   const perc = Math.round(100 * S.punti / tot), sec = Math.floor((Date.now() - S.t0) / 1000);
   const chiave = chiaveRec(S.gioco, S.modo, S.liv, S.cats), rec = mp.get(chiave, null);
   const nuovoRec = rec === null || perc > rec; if (nuovoRec) mp.set(chiave, perc);
-  const sess = mp.get('sess', []);
+  const sess = mp.get(kSess(), []);
   sess.push({ t: Date.now(), g: S.gioco, m: S.modo, l: S.liv, c: S.modo === 'fisico' ? S.cats : [], p: perc, n: tot, s: sec });
-  mp.set('sess', sess.slice(-300));
+  mp.set(kSess(), sess.slice(-300));
   const msg = perc === 100 ? 'Perfetto! 🌟' : perc >= 80 ? 'Ottimo lavoro! 👏' : perc >= 60 ? 'Bene, ancora un po\' di ripasso.' : 'Continua ad allenarti: ce la farai!';
   const stelle = perc >= 90 ? 3 : perc >= 70 ? 2 : perc >= 40 ? 1 : 0;
   const err = [...new Set(S.errori)];
   const lista = err.length ? `<div class="lista"><b>Da ripassare:</b><ul>${err.map(k => `<li>${etichettaChiave(k)}</li>`).join('')}</ul></div>` : '';
   const base = [...new Set(err.map(baseId))];
-  $('fine').innerHTML = `<div class="card-fine"><h1>${g.ico} ${g.nome}</h1><p class="nota">Livello ${LIVELLI[S.liv - 1].nome} · tempo ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}</p>
+  $('fine').innerHTML = `<div class="card-fine"><h1>${g.ico} ${g.nome}</h1><p class="nota">${SZ.nome} · Livello ${LIVELLI[S.liv - 1].nome} · tempo ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}</p>
     <div class="stelle">${'★'.repeat(stelle)}${'☆'.repeat(3 - stelle)}</div>
     <div class="voto">${pt}/${tot}</div><p><b>${perc}%</b> — ${msg}${nuovoRec && rec !== null ? ' Nuovo record! 🏆' : ''}</p>${lista}
     <div class="azioni"><button class="primario" id="ancora">Rigioca</button>
-    ${base.length && S.gioco !== 'coloraUE' ? '<button class="secondario" id="ripassa">Ripassa solo gli errori</button>' : ''}
+    ${base.length && !['coloraUE', 'coloraCont'].includes(S.gioco) ? '<button class="secondario" id="ripassa">Ripassa solo gli errori</button>' : ''}
     <button class="secondario" id="vaiProg">📈 I miei progressi</button>
     <button class="secondario" id="menu">Menu</button></div></div>`;
   mostra('fine');
@@ -697,7 +1016,7 @@ $('esci').onclick = esciMenu;
 
 // ---------- i miei progressi ----------
 function disegnaProgressi() {
-  const st = mp.get('stat', {}), sess = mp.get('sess', []);
+  const st = mp.get(kStat(), {}), sess = mp.get(kSess(), []);
   const box = $('progressi');
   const nSess = sess.length, ultime = sess.slice(-5), prime = sess.slice(0, 5);
   const media = a => a.length ? Math.round(a.reduce((s, x) => s + x.p, 0) / a.length) : null;
@@ -724,7 +1043,7 @@ function disegnaProgressi() {
   const dachi = [...new Set(righe.map(([k]) => baseId(k)))];
   const daStati = dachi.filter(i => per[i]), daFis = dachi.filter(i => fis[i]);
   box.innerHTML = `<div class="barra"><button class="btn-testo" id="progIndietro">← Menu</button><span class="stat">Profilo: <b>${profilo}</b></span></div>
-    <h1>📈 I miei progressi</h1>
+    <h1>📈 I miei progressi · ${SZ.nome}</h1>
     <div class="riepilogo">
       <div class="num"><b>${nSess}</b><span>partite giocate</span></div>
       <div class="num"><b>${mU === null ? '–' : mU + '%'}</b><span>media ultime 5</span></div>
@@ -740,8 +1059,8 @@ function disegnaProgressi() {
       ${daFis.length ? '<button class="primario" id="allenaFis">🎯 Allena gli elementi fisici sbagliati</button>' : ''}
     </div>
     <h2>Gestione dati</h2>
-    <p class="nota">I progressi sono salvati su questo dispositivo, nel profilo «${profilo}». Se cancelli i dati del browser si perdono.</p>
-    <div class="azioni"><button class="secondario" id="copiaCsv">📋 Copia il riepilogo</button><button class="secondario" id="azzera">🗑️ Azzera i progressi di ${profilo}</button></div>
+    <p class="nota">I progressi sono salvati su questo dispositivo, nel profilo «${profilo}». Se cancelli i dati del browser si perdono. Qui vedi solo la sezione ${SZ.nome}.</p>
+    <div class="azioni"><button class="secondario" id="copiaCsv">📋 Copia il riepilogo</button><button class="secondario" id="azzera">🗑️ Azzera i progressi di ${profilo} (${SZ.nome})</button></div>
     <p class="nota" id="esitoCopia"></p><textarea id="areaCsv" class="area-csv" rows="6" readonly hidden aria-label="Riepilogo da copiare"></textarea>`;
   $('progIndietro').onclick = esciMenu;
   if ($('allenaStati')) $('allenaStati').onclick = () => { modo = 'stati'; mem.set('modo', modo); avvia('trova', daStati.slice(0, 10)); };
@@ -759,14 +1078,15 @@ function disegnaProgressi() {
   $('azzera').onclick = () => {
     if (conferma === null) {
       $('azzera').textContent = `Sicuro? Clicca di nuovo per cancellare i dati di ${profilo}`;
-      conferma = setTimeout(() => { conferma = null; $('azzera').textContent = `🗑️ Azzera i progressi di ${profilo}`; }, 5000);
+      conferma = setTimeout(() => { conferma = null; $('azzera').textContent = `🗑️ Azzera i progressi di ${profilo} (${SZ.nome})`; }, 5000);
       return;
     }
-    clearTimeout(conferma); mp.del('stat'); mp.del('sess');
-    Object.keys(localStorage).filter(k => k.startsWith(`eg_p_${profilo}_rec_`)).forEach(k => localStorage.removeItem(k));
+    clearTimeout(conferma); mp.del(kStat()); mp.del(kSess());
+    Object.keys(localStorage).filter(k => k.startsWith(`eg_p_${profilo}_${SZ.rec}`)).forEach(k => localStorage.removeItem(k));
     disegnaProgressi();
   };
 }
 
-disegnaHome();
+// avvio: si carica l'ultima sezione usata (Mondo solo se i suoi dati sono disponibili)
+impostaSezione(sezione).catch(() => impostaSezione('europa')).then(() => disegnaHome());
 })();

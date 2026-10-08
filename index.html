@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Europa in gioco</title>
-<meta name="description" content="Giochi di geografia per imparare gli Stati d'Europa, l'Unione europea e gli elementi fisici del continente.">
+<title>Geografia in gioco</title>
+<meta name="description" content="Giochi di geografia per la scuola media: l'Europa (seconda media) e il mondo (terza media). Stati, capitali, continenti ed elementi fisici.">
 <link rel="stylesheet" href="stile.css">
 </head>
 <body>
 
 <header class="testata">
-  <button class="logo" id="logo" aria-label="Torna al menu"><span class="logo-ico">🧭</span><span>Europa in gioco</span></button>
+  <button class="logo" id="logo" aria-label="Torna al menu"><span class="logo-ico">🧭</span><span>Geografia in gioco</span></button>
   <div class="strumenti">
     <button class="btn-strum" id="btnProgressi">📈 <span class="lbl">Progressi</span></button>
     <button class="btn-strum" id="btnProfilo">👤 <span id="nomeProfilo">Io</span></button>
@@ -29,9 +29,11 @@
 </div>
 
 <main id="home" class="schermata">
+  <nav class="sezioni" id="sezioni" aria-label="Scegli la sezione"></nav>
+
   <section class="hero">
-    <h1>Impara l'Europa giocando</h1>
-    <p class="hero-testo">Questo è un sito didattico per <b>studiare e imparare</b> la geografia dell'Europa: gli <b>elementi fisici</b> (monti, pianure, mari, fiumi, isole, penisole e laghi), gli <b>Stati</b> e le <b>informazioni di base</b> su ciascuno, come capitale, moneta, lingua e appartenenza all'Unione europea.</p>
+    <h1 id="heroTitolo">Impara l'Europa giocando</h1>
+    <p class="hero-testo" id="heroTesto"></p>
     <div class="hero-passi">
       <div><span>📖</span><b>Studia</b><small>Esplora la mappa e leggi le schede, con una curiosità per ogni elemento.</small></div>
       <div><span>🎯</span><b>Allenati</b><small>Giochi e quiz come sulla cartina muta, a tre livelli di difficoltà.</small></div>
@@ -62,7 +64,7 @@
     <div class="cards" id="giochi"></div>
   </section>
 
-  <footer>Confini, fiumi e carta fisica: Natural Earth (dominio pubblico). Quote del terreno: Terrain Tiles su AWS Open Data (da SRTM, ETOPO1 e altre fonti pubbliche). Dati arrotondati e aggiornati al 2026: per le verifiche fa fede il libro di testo.</footer>
+  <footer id="piede"></footer>
 </main>
 
 <main id="gioco" class="schermata" hidden>
@@ -74,7 +76,7 @@
   <div class="domanda" id="domanda"></div>
 
   <div class="mappa-wrap">
-    <svg id="mappa" role="img" aria-label="Mappa dell'Europa" data-modo="stati"></svg>
+    <svg id="mappa" role="img" aria-label="Mappa" data-modo="stati"></svg>
     <div class="zoom">
       <button id="zPiu" aria-label="Ingrandisci" title="Ingrandisci">+</button>
       <button id="zMeno" aria-label="Riduci" title="Riduci">−</button>
