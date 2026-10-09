@@ -243,6 +243,9 @@ $('aggiungiProfilo').onclick = () => {
   profilo = n; mem.set('profilo', n); $('nuovoProfilo').value = ''; $('panProfilo').hidden = true; disegnaHome();
 };
 $('btnTema').onclick = () => { tema = tema === 'chiaro' ? 'scuro' : 'chiaro'; mem.set('tema', tema); document.documentElement.dataset.tema = tema; $('btnTema').textContent = tema === 'chiaro' ? '🌙' : '☀️'; };
+const iconaSuoni = () => { $('btnSuoni').textContent = suoniAttivi() ? '🔊' : '🔇'; };
+iconaSuoni();
+$('btnSuoni').onclick = () => { suonoImposta(!suoniAttivi()); iconaSuoni(); };
 $('btnProgressi').onclick = () => { disegnaProgressi(); mostra('progressi'); };
 $('logo').onclick = () => esciMenu();
 
@@ -297,7 +300,7 @@ function costruisciMappa() {
   ordine.forEach(f => {
     const els = [], marca = e => { e.dataset.id = f.id; e.style.display = 'none'; els.push(e); return e; };
     if (f.tipo === 'poly') {
-      marca(crea('path', { d: f.d }, (f.cat === 'mari' || f.cat === 'stretti') ? gSea : (f.cat === 'penisole' || f.cat === 'pianure' || f.cat === 'deserti' || f.cat === 'monti') ? gPen : gPoly, `fis poly cat-${f.cat}`));
+      marca(crea('path', { d: f.d }, (f.cat === 'mari' || f.cat === 'stretti') ? gSea : (f.cat === 'penisole' || f.cat === 'isole' || f.cat === 'pianure' || f.cat === 'deserti' || f.cat === 'monti') ? gPen : gPoly, `fis poly cat-${f.cat}`));
       if (f.small) marca(crea('circle', { cx: f.c[0], cy: f.c[1] }, gFMark, 'fmark' + (f.cat === 'laghi' ? ' fmark-lago' : '')));
     } else if (f.tipo === 'line') {
       marca(crea('path', { d: f.d }, gLines, `fis line cat-${f.cat}`));
@@ -306,7 +309,7 @@ function costruisciMappa() {
     } else {
       const tri = marca(crea('path', { d: 'M0,-9 L8,6 L-8,6 Z' }, gPt, `fis pt cat-${f.cat}`));
       tri.dataset.x = f.c[0]; tri.dataset.y = f.c[1];
-      marca(crea('circle', { cx: f.c[0], cy: f.c[1] }, gFMark, 'fmark'));
+      marca(crea('circle', { cx: f.c[0], cy: f.c[1] }, gFMark, 'fmark fmark-vetta'));
     }
     elemF[f.id] = els;
     const t = crea('text', { x: f.c[0], y: f.c[1] }, gLabel, `etichetta cat-${f.cat}`);
@@ -342,7 +345,7 @@ function applicaVista() {
   const k = vb.w / E.W;
   const kk = Math.max(k, SZ.mk[1]);
   gMarker.querySelectorAll('circle').forEach(c => c.setAttribute('r', SZ.mk[0] * kk));
-  gFMark.querySelectorAll('circle').forEach(c => c.setAttribute('r', 10 * kk));
+  gFMark.querySelectorAll('circle').forEach(c => c.setAttribute('r', (c.classList.contains('fmark-vetta') ? 5 : 10) * kk));
   gPt.querySelectorAll('path').forEach(t => t.setAttribute('transform', `translate(${t.dataset.x} ${t.dataset.y}) scale(${kk})`));
   if (gArmate) gArmate.querySelectorAll('g').forEach(g => g.setAttribute('transform', `translate(${g.dataset.x} ${g.dataset.y}) scale(${Math.max(k, 0.25)})`));
   const fs = 12 * k;
@@ -446,6 +449,7 @@ svg.addEventListener('click', e => {
 let S = null, etichetteOn = false, timer = null, modoAttivo = 'stati';
 
 function avvia(gioco, soloIds) {
+  suonoSerie();
   clearInterval(timer);
   modoAttivo = modo;
   const poolIds = soloIds
@@ -550,7 +554,7 @@ function avanti() {
 function esito(id, ok, html, chiave) {
   if (id) { pulisciStati(); statoClasse(id, ok ? 'giusto' : 'sbagliato'); }
   if (ok) S.punti++; else S.errori.push(chiave || id);
-  registra(chiave || id, ok);
+  registra(chiave || id, ok); suono(ok ? 'ok' : 'ko');
   const m = document.createElement('div'); m.className = 'msg ' + (ok ? 'ok' : 'ko');
   m.innerHTML = (ok ? '✅ Giusto! ' : '❌ Non proprio. ') + html;
   $('pannello').appendChild(m);
@@ -563,11 +567,11 @@ function rispondiTrova(id, cl) {
   if (cl === id) {
     S.blocca = true;
     if (S.tent === 0) S.punti++; else if (!S.errori.includes(id)) S.errori.push(id);
-    registra(id, S.tent === 0);
+    registra(id, S.tent === 0); suono(S.tent === 0 ? 'ok' : 'trovato');
     statoClasse(id, 'giusto'); showMsg((S.tent === 0 ? '✅ Giusto! ' : '✅ Trovato. ') + info(), 'ok');
     const tok = S; setTimeout(() => { if (S === tok) { S.i++; prossima(); } }, 1500);
   } else {
-    S.tent++; statoClasse(cl, 'sbagliato'); setTimeout(() => statoClasse(cl, 'sbagliato', false), 700);
+    S.tent++; suono(S.tent >= 2 ? 'ko' : 'ritenta'); statoClasse(cl, 'sbagliato'); setTimeout(() => statoClasse(cl, 'sbagliato', false), 700);
     if (S.tent >= 2) {
       S.blocca = true; S.errori.push(id); registra(id, false); statoClasse(id, 'manca');
       showMsg(`❌ Era <b>${nome(id)}</b> (evidenziato in arancione). ${per[id] ? '' : (fis[id].info || '')}`, 'ko');
@@ -670,6 +674,7 @@ function avviaStudio() {
     $('optUE').onchange = ue; ue();
   }
   sulClic = id => {
+    suono('cat', fisico ? fis[id].cat : 'stato');
     S.pool.forEach(x => statoClasse(x, 'evidenzia', x === id));
     $('scheda').innerHTML = fisico ? schedaElemento(fis[id]) : cartaStato(per[id]);
   };
@@ -695,7 +700,7 @@ function giocoSelezione({ membri, tollerati, titolo, sotto, chiave }) {
       else if (!e && s) { sbagliati++; S.errori.push(id + chiave); statoClasse(id, 'sbagliato'); registra(id + chiave, false); }
       else if (e && !s) { dimenticati++; S.errori.push(id + chiave); statoClasse(id, 'manca'); registra(id + chiave, false); }
     });
-    S.punti = Math.max(0, giusti - sbagliati); S.totale = membri.size;
+    S.punti = Math.max(0, giusti - sbagliati); S.totale = membri.size; suono(!sbagliati && !dimenticati ? 'ok' : 'ko');
     $('pannello').innerHTML = `<div class="msg">Verde: giusti (${giusti}) · Rosso: scelti per errore (${sbagliati}) · Arancione: ${SZ.id === 'mondo' ? 'Stati del continente' : 'UE'} che avevi dimenticato (${dimenticati}).${tollerati.size ? ' Gli Stati a cavallo tra due continenti non cambiano il punteggio.' : ''}</div>
       <button class="primario" id="vaiFine">Vedi il risultato →</button>`;
     $('vaiFine').onclick = finisci;
@@ -902,7 +907,7 @@ function avviaLegami(soloIds) {
       [...sel].forEach(x => { statoClasse(x, 'sel', false); statoClasse(x, ok.includes(x) || tol.includes(x) ? 'giusto' : 'sbagliato'); });
       mancanti.forEach(x => statoClasse(x, 'manca'));
       const frazione = Math.max(0, (giusti.length - sbagliati.length) / ok.length) * (aiuto ? 0.5 : 1), perfetto = !mancanti.length && !sbagliati.length && !aiuto;
-      S.punti += frazione; registra(id + '|stati', perfetto); if (!perfetto) S.errori.push(id + '|stati');
+      S.punti += frazione; registra(id + '|stati', perfetto); suono(perfetto ? 'ok' : 'ko'); if (!perfetto) S.errori.push(id + '|stati');
       const nomi = a => a.map(nomeStato).join(', ');
       const m = document.createElement('div'); m.className = 'msg ' + (perfetto ? 'ok' : 'ko');
       m.innerHTML = (perfetto ? '✅ Perfetto! ' : `Ne hai trovati ${giusti.length} su ${ok.length}${aiuto ? ' (con aiuto: mezzo punto)' : ''}. `) + `Stati corretti: <b>${nomi(ok)}</b>.` +
@@ -966,7 +971,7 @@ function avviaElementi(soloIds) {
       });
       giuste.forEach(g => elemF[g.id].forEach(e => { e.style.display = ''; }));
       const frazione = Math.max(0, (hit.length - err.length) / gIds.length), perfetto = !manc.length && !err.length;
-      S.punti += frazione; registra(id + '|elementi', perfetto); if (!perfetto) S.errori.push(id + '|elementi');
+      S.punti += frazione; registra(id + '|elementi', perfetto); suono(perfetto ? 'ok' : 'ko'); if (!perfetto) S.errori.push(id + '|elementi');
       const nomi = a => a.map(x => fis[x].nome).join(', '), altri = tutti.map(t => t.id).filter(x => !gIds.includes(x));
       const m = document.createElement('div'); m.className = 'msg ' + (perfetto ? 'ok' : 'ko');
       m.innerHTML = (perfetto ? '✅ Perfetto! ' : `Ne hai trovati ${hit.length} su ${gIds.length}. `) + `Elementi giusti: <b>${nomi(gIds)}</b>.` +
@@ -1004,7 +1009,7 @@ function finisci() {
     ${base.length && !['coloraUE', 'coloraCont'].includes(S.gioco) ? '<button class="secondario" id="ripassa">Ripassa solo gli errori</button>' : ''}
     <button class="secondario" id="vaiProg">📈 I miei progressi</button>
     <button class="secondario" id="menu">Menu</button></div></div>`;
-  mostra('fine');
+  mostra('fine'); suono('fine', perc);
   const giocoRipasso = S.gioco, modoRipasso = S.modo;
   $('ancora').onclick = () => avvia(S.gioco);
   if ($('ripassa')) $('ripassa').onclick = () => { modo = modoRipasso; avvia(giocoRipasso === 'identita' ? 'indovina' : giocoRipasso, base); };
